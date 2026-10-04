@@ -1,0 +1,106 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.3rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition:
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+
+.icon {
+  flex: none;
+  transition: transform 0.18s var(--ease);
+}
+
+.btn:hover .icon {
+  transform: translateX(2px);
+}
+
+/* ------------------------------- Variants -------------------------------- */
+
+/* On a dark ground the accent fill is the primary action. Its label is the
+   near-black `--accent-on`, which clears AA on the fill at 7.3:1. */
+.primary {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+.primary:hover {
+  background: #ff8e51;
+}
+
+/* `--line-ui` rather than `--line-strong`: a secondary button has no fill, so
+   its border is the only thing marking the control and has to reach 3:1. */
+.secondary {
+  background: transparent;
+  border-color: var(--line-ui);
+  color: var(--ink);
+}
+
+.secondary:hover {
+  border-color: var(--ink);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Light fill, for sitting on top of a screenshot or an accent panel. */
+.onDark {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.onDark:hover {
+  background: #ffffff;
+}
+
+/* Outline sibling of `onDark`, for a secondary action on a dark surface. */
+.onDarkOutline {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.34);
+  color: #fff;
+}
+
+.onDarkOutline:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.quiet {
+  padding-inline: 0;
+  color: var(--accent-ink);
+  font-weight: 500;
+}
+
+.quiet:hover {
+  color: var(--ink);
+}
+
+/* -------------------------------- Sizes ---------------------------------- */
+
+.lg {
+  padding: 0.95rem 1.6rem;
+  font-size: 1rem;
+}
+
+.sm {
+  padding: 0.55rem 0.95rem;
+  font-size: 0.88rem;
+}
+
+.block {
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .btn:not(.quiet) {
+    width: 100%;
+  }
+}

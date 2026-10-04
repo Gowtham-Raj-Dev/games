@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Velocity Rift</title>
+<meta name="description" content="3D lap racing game with six circuits, nine cars, online rooms and an English/Tamil announcer.">
+<meta name="theme-color" content="#07080d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Velocity Rift">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="assets/icons/favicon.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+<!-- The phone layout is its own design, not a set of overrides sprinkled through
+     style.css. It loads second and applies only under body.touch / body.phone. -->
+<link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="splash">
+  <div class="sp-rings"><i></i><i></i><i></i></div>
+  <div class="sp-center">
+    <div class="sp-logo"><span>Velocity</span><b>Rift</b></div>
+    <div class="sp-tag" id="spTag" data-i18n="spTag">Six circuits · Nine machines · One finish line</div>
+    <div class="sp-bar"><i id="spBar"></i></div>
+    <div class="sp-step" id="spStep">Starting engine</div>
+    <button id="spGo" hidden data-i18n="spGo" data-i18n-touch="spGoTouch">Press any key to start</button>
+    <div class="langpill sp-lang" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="ta">தமிழ்</button></div>
+  </div>
+  <div class="sp-foot" data-i18n="spFoot" data-i18n-touch="spFootTouch">Headphones on. Best with a keyboard or gamepad.</div>
+</div>
+
+<div id="vign"></div>
+<div id="boostfx"></div>
+
+<div id="menu">
+  <header class="topbar">
+    <div class="brand">Velocity<span>Rift</span><small data-i18n="garage">Garage</small></div>
+    <div class="tools">
+      <button class="iconbtn" id="btnName" aria-label="Driver name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.2-7 8-7s7 2.5 8 7"/></svg><span class="nm" id="nameLbl">Driver</span></button>
+      <div class="langpill" role="group" aria-label="Language"><button id="pillEn" data-lang="en">EN</button><button id="pillTa" data-lang="ta">தமிழ்</button></div>
+      <button class="iconbtn" id="btnControls" aria-label="Controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 10v4M4 12h4M15 11h.01M18 13h.01"/></svg><span class="lbl2" data-i18n="controls">Controls</span></button>
+      <button class="iconbtn" id="btnSettings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="lbl2" data-i18n="settings">Settings</span></button>
+    </div>
+  </header>
+
+  <section class="panel-car glass">
+    <div class="eyebrow"><span data-i18n="machine">Machine</span><span id="carIdx" class="num">1 / 5</span></div>
+    <div class="carhead">
+      <button class="arrow" id="carPrev" aria-label="Previous car">&#9664;</button>
+      <div class="nm"><b id="carName">Kestrel GT</b><small id="carCls">Grand tourer</small></div>
+      <button class="arrow" id="carNext" aria-label="Next car">&#9654;</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="dots" id="carDots"></div>
+    <div class="eyebrow"><span data-i18n="paint">Paint</span></div>
+    <div class="swatches" id="swatches"></div>
+    <div class="stylerow"><span class="lbl" data-i18n="finishLbl">Finish</span><div class="seg" id="segFinish"></div></div>
+    <p class="tag" data-i18n="tag">Drift through corners to fill nitro, then fire it on the straights. Every circuit hides a shortcut.</p>
+  </section>
+
+  <div class="showarrows"><button id="carPrev2" aria-label="Previous car">&#9664;</button><button id="carNext2" aria-label="Next car">&#9654;</button></div>
+  <div class="showlabel"><b id="showCar">KESTREL</b><span id="showStage">Golden Coast</span><em class="rotHint" data-i18n="rotHint" data-i18n-touch="rotHintTouch">Drag to rotate · scroll to zoom</em></div>
+
+  <section class="panel-setup glass">
+    <div class="eyebrow"><span data-i18n="raceSetup">Race setup</span></div>
+    <div class="sec"><div class="eyebrow" style="margin-bottom:8px"><span data-i18n="laps">Laps</span></div><div class="seg" id="segLaps"></div></div>
+    <div class="sec"><div class="eyebrow" style="margin-bottom:8px"><span data-i18n="rivals">Rivals</span></div><div class="seg" id="segDiff"></div></div>
+    <div class="record"><span data-i18n="yourBest">Your best lap</span><b id="bestLbl">--:--.---</b></div>
+    <button id="btnStart"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3v18h2v-7h5l1 2h8V5h-7l-1-2z"/></svg><span data-i18n="start">Start race</span></button>
+    <div class="kbdhint" data-i18n="enterHint">Press Enter to start</div>
+    <button id="btnOnline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.4 6-5.4s5.4 2 6 5.4"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.5.2 4.1 2 4.5 4.8"/></svg><span data-i18n="playFriends">Play with friends</span><span class="live">LIVE</span></button>
+  </section>
+
+  <section class="trackwrap">
+    <div class="trackhead"><div class="eyebrow"><span data-i18n="circuit">Circuit</span><span id="trackCount"></span></div><div class="tnav"><button id="tPrev" aria-label="Scroll circuits left">&#9664;</button><button id="tNext" aria-label="Scroll circuits right">&#9654;</button></div></div>
+    <div class="tracks" id="stages" aria-label="Circuits"></div>
+  </section>
+</div>
+
+<div id="namebox" class="overlay sheet" hidden>
+  <div class="card namebox">
+    <h2 data-i18n="yourName">Your driver name</h2>
+    <p class="muted" data-i18n="nameHint">Shown on the leaderboard and to friends in online rooms.</p>
+    <input id="nameIn" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Racer">
+    <div class="btns"><button class="pri" id="btnNameSave" data-i18n="save">Save</button></div>
+  </div>
+</div>
+<div id="online" class="overlay sheet" hidden>
+  <div class="card wide">
+    <h2 data-i18n="playFriends">Play with friends</h2>
+    <div id="onChoose">
+      <p class="muted" data-i18n="onIntro">Create a room and send the 6-digit code to your friends, or join a friend's room with their code.</p>
+      <div class="oncols">
+        <div class="onbox"><h3 data-i18n="createRoom">Create a room</h3><p data-i18n="createHint">You host: pick the circuit, laps and whether bots join.</p><button class="btn-big" id="btnCreate" data-i18n="create">Create room</button></div>
+        <div class="onbox"><h3 data-i18n="joinRoom">Join a room</h3><p data-i18n="joinHint">Type the code your friend shared.</p><div class="codein"><input id="codeIn" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="000000" aria-label="Room code"><button id="btnJoin" data-i18n="join">Join</button></div></div>
+      </div>
+      <p class="onerr" id="onErr" hidden></p>
+    </div>
+    <div id="onLobby" hidden>
+      <div class="codebar"><div><div class="lbl" data-i18n="roomCode">Room code</div><div class="code" id="roomCode">000 000</div></div><button class="iconbtn" id="btnCopy" data-i18n="copy">Copy code</button></div>
+      <p class="muted" id="lobbyHint"></p>
+      <div class="lobbygrid">
+        <div><div class="eyebrow"><span id="pCount">1 player</span></div><ul id="plist" class="plist"></ul></div>
+        <div id="hostCtl">
+          <div class="sec"><h3 data-i18n="circuit">Circuit</h3><select id="onStage" aria-label="Circuit"></select></div>
+          <div class="sec"><h3 data-i18n="laps">Laps</h3><div class="seg" id="onLaps"></div></div>
+          <button class="btn-big" id="btnOnStart" data-i18n="start">Start race</button>
+          <div id="fillAsk" class="fillask" hidden><p id="fillTxt"></p><div class="fillbtns"><button class="btn-big" id="fillYes"></button><button class="btn-ghost" id="fillNo"></button></div><button class="linkbtn" id="fillBack" data-i18n="back">Back</button></div>
+        </div>
+        <div id="guestWait" hidden><div class="waiting" id="waitTxt">Waiting for the host</div><p class="muted" id="hostSettings" style="margin-top:12px"></p></div>
+      </div>
+    </div>
+    <div id="onNA" hidden><p class="muted" data-i18n="onNA">Online rooms work in the web version of this game on claude.ai. Open the shared game link in your browser to create or join a room.</p></div>
+    <div class="btns"><button id="btnOnLeave" data-i18n="leaveRoom">Leave room</button><button id="btnOnClose" class="pri" data-i18n="close">Close</button></div>
+  </div>
+</div>
+<div id="settings" class="overlay sheet" hidden>
+  <div class="card">
+    <h2 data-i18n="settings">Settings</h2>
+    <div class="grid2">
+      <div class="sec"><h3 data-i18n="graphics">Graphics</h3><div class="seg" id="segQ"></div></div>
+      <div class="sec"><h3 data-i18n="music">Music</h3><div class="seg" id="segMusic"></div></div>
+      <div class="sec"><h3 data-i18n="language">Language</h3><div class="seg" id="segLang"></div></div>
+      <div class="sec"><h3 data-i18n="voice">Announcer</h3><div class="seg" id="segVoice"></div></div>
+      <div class="sec touchonly" id="secSteer" hidden><h3 data-i18n="steering">Steering</h3><div class="seg" id="segSteer"></div></div>
+      <div class="sec touchonly" id="secSens" hidden><h3 data-i18n="sensitivity">Sensitivity</h3><div class="seg" id="segSens"></div></div>
+    </div>
+    <p class="note" id="steerNote" hidden></p>
+    <button class="widebtn touchonly" id="btnPads2" hidden data-i18n="padTitle">Controls layout</button>
+    <p class="note" id="voiceNote" hidden></p>
+    <div class="btns"><button class="pri" data-close="settings" data-i18n="done">Done</button></div>
+  </div>
+</div>
+<div id="controls" class="overlay sheet" hidden>
+  <div class="card">
+    <h2 data-i18n="controls">Controls</h2>
+    <div class="keys">
+      <div class="kgrid">
+        <span><kbd>W</kbd><kbd>↑</kbd> <em data-i18n="kThrottle">Throttle</em></span>
+        <span><kbd>S</kbd><kbd>↓</kbd> <em data-i18n="kBrake">Brake / reverse</em></span>
+        <span><kbd>A</kbd><kbd>D</kbd> <em data-i18n="kSteer">Steer</em></span>
+        <span><kbd>Space</kbd> <em data-i18n="kDrift">Handbrake drift</em></span>
+        <span><kbd>Shift</kbd> <em data-i18n="kNitro">Nitro</em></span>
+        <span><kbd>C</kbd> <em data-i18n="kCam">Camera</em></span>
+        <span><kbd>R</kbd> <em data-i18n="kReset">Reset car</em></span>
+        <span><kbd>P</kbd> <em data-i18n="kPause">Pause</em></span>
+        <span><kbd>M</kbd> <em data-i18n="musicKey">Change music</em></span>
+        <span><kbd>L</kbd> <em data-i18n="kLang">Language</em></span>
+      </div>
+      <p data-i18n="pads" data-i18n-touch="kTouch">Gamepad and touch controls work too.</p>
+    </div>
+    <div class="btns"><button class="pri" data-close="controls" data-i18n="done">Done</button></div>
+  </div>
+</div>
+
+<div id="hud" hidden>
+  <div id="netbadge" hidden></div>
+  <!-- `.m-top` is `display:contents` on a desktop, so the two blocks below keep
+       their own pinned corners; on a phone it becomes the grid that lays the
+       whole top strip out, which is what stops the readouts overlapping. -->
+  <div class="m-top">
+  <div class="tl">
+    <div class="posbox">
+      <div class="pos num"><span id="hPos">4</span><small>/<span id="hPosN">6</span></small></div>
+      <div class="lapbox"><div class="lbl" data-i18n="lap">Lap</div><b class="num" id="hLap">1/3</b></div>
+    </div>
+    <ol id="board"></ol>
+  </div>
+  <div class="tr">
+    <div class="t"><div class="lbl" data-i18n="lapTime">Lap time</div><b id="hTime">0:00.000</b></div>
+    <div class="t best"><div class="lbl" data-i18n="best">Best</div><b id="hBest">--:--.---</b></div>
+    <div class="t tot"><div class="lbl" data-i18n="total">Total</div><b id="hTotal">0:00.000</b></div>
+    <button id="btnPause" aria-label="Pause">II</button>
+  </div>
+  </div>
+  <canvas id="minimap" width="380" height="380"></canvas>
+  <canvas id="gauge" width="480" height="480"></canvas>
+  <div id="msg"></div>
+  <div id="sub"></div>
+  <!-- Tilt mode draws no steering control, so this level bar is the only thing
+       that says where centre is. It lives outside #touch because the layout
+       editor moves everything inside #touch and this is not draggable. -->
+  <div id="tTilt"><i></i></div>
+  <div id="touch" hidden>
+    <div class="steer">
+      <button id="tL" class="pad" aria-label="Steer left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
+      <button id="tR" class="pad" aria-label="Steer right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <!-- Slider steering: one strip the thumb slides along. Shown instead of the
+         two pads when the steering mode is "slider". -->
+    <div id="tSteer" role="slider" aria-label="Steering" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" tabindex="-1">
+      <i></i>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3v5.8M4.2 16.5l5-2.9M19.8 16.5l-5-2.9"/></svg>
+    </div>
+    <div class="pedals">
+      <button id="tDrift" class="ped sm drift" aria-label="Drift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 17c4 0 5-9 9-9s5 6 9 6"/><path d="M5 20h5"/></svg><b data-i18n="btnDrift">Drift</b></button>
+      <button id="tNos" class="ped sm nitro" aria-label="Nitro"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><b data-i18n="btnNitro">Nitro</b></button>
+      <button id="tBrk" class="ped brake" aria-label="Brake"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6v4.6l3 2"/></svg><b data-i18n="btnBrake">Brake</b></button>
+      <button id="tGas" class="ped gas" aria-label="Accelerate"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.4 5.2 15.2h4.3L8.1 21.4 18.8 9.9h-5z" opacity=".0"/><path d="M4 19V8.6a1.6 1.6 0 0 1 2.5-1.3l10.8 7.4a1.6 1.6 0 0 1 0 2.6L6.5 20.3A1.6 1.6 0 0 1 4 19z"/></svg><b data-i18n="btnGas">Gas</b></button>
+    </div>
+  </div>
+</div>
+
+<div id="padedit" hidden>
+  <div class="pe-bar">
+    <b class="pe-title" data-i18n="padTitle">Controls layout</b>
+    <label class="pe-f"><span id="peSizeLbl" data-i18n="padSize">Size</span><input id="peSize" type="range" min="60" max="180" step="5" value="100" aria-label="Control size"></label>
+    <label class="pe-f"><span data-i18n="padAlpha">Opacity</span><input id="peAlpha" type="range" min="25" max="100" step="5" value="100" aria-label="Control opacity"></label>
+    <div class="pe-btns">
+      <button id="peReset" data-i18n="padReset">Reset</button>
+      <button id="peCancel" data-i18n="padCancel">Cancel</button>
+      <button id="peSave" class="pri" data-i18n="padSave">Save</button>
+    </div>
+  </div>
+  <div class="pe-hint" id="peHint" data-i18n="padHintAll">Drag a control to move it.</div>
+</div>
+<div id="pause" class="overlay" hidden>
+  <div class="card">
+    <h2 data-i18n="paused">Paused</h2>
+    <p id="pauseInfo">Race is on hold.</p>
+    <div class="row prow">
+      <div class="sec"><h3 data-i18n="language">Language</h3><div class="seg" id="pLang"></div></div>
+      <div class="sec"><h3 data-i18n="music">Music</h3><div class="seg" id="pMusic"></div></div>
+    </div>
+    <div class="btns">
+      <button class="pri" id="btnResume" data-i18n="resume">Resume</button>
+      <button id="btnRestart" data-i18n="restart">Restart</button>
+      <button id="btnQuit" data-i18n="garage">Garage</button>
+      <button id="btnPads" data-i18n="padTitle" hidden>Controls layout</button>
+      <button id="btnFull" data-i18n="fullscreen" hidden>Full screen</button>
+    </div>
+  </div>
+</div>
+
+<div id="results" class="overlay" hidden>
+  <div class="card">
+    <h2 id="resTitle">Finished</h2>
+    <p id="resSub"></p>
+    <div class="tblwrap"><table class="res"><thead><tr><th>#</th><th data-i18n="driver">Driver</th><th data-i18n="car">Car</th><th data-i18n="time">Time</th><th data-i18n="bestLap">Best lap</th></tr></thead><tbody id="resBody"></tbody></table></div>
+    <div class="btns">
+      <button class="pri" id="btnAgain" data-i18n="again">Race again</button>
+      <button id="btnNextStage" data-i18n="next">Next circuit</button>
+      <button id="btnGarage" data-i18n="garage">Garage</button>
+      <button class="pri" id="btnLobby" hidden data-i18n="backLobby">Back to lobby</button>
+    </div>
+  </div>
+</div>
+
+<div id="loading" hidden>
+  <div class="ld-bg" id="ldBg"></div>
+  <div class="ld-grid">
+    <div class="ld-info">
+      <div class="ld-eyebrow" id="ldEyebrow" data-i18n="ldEyebrow">Next circuit</div>
+      <div class="ld-name" id="ldT">Golden Coast</div>
+      <div class="ld-sub" id="ldS"></div>
+      <dl class="ld-stats" id="ldStats"></dl>
+      <div class="ld-bar"><i id="ldBar"></i></div>
+      <div class="ld-step" id="ldStep"></div>
+      <div class="tip" id="ldTip"></div>
+    </div>
+    <div class="ld-map"><svg id="ldMap" viewBox="0 0 400 400" aria-hidden="true"></svg></div>
+  </div>
+</div>
+<div id="rotate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M3 12a9 9 0 0 1 4-7.5M21 12a9 9 0 0 1-4 7.5"/></svg><span data-i18n="rotate">Turn your phone sideways to race</span></div>
+<div id="err" hidden></div>
+
+<script>
+  // Shows a message if the 3D engine files fail to load (for example when the page is opened from file://).
+  window.addEventListener('error', function (e) {
+    var el = document.getElementById('err');
+    if (!el || !e.message || /ResizeObserver|^Script error/i.test(e.message)) return;
+    el.textContent = 'Something went wrong: ' + e.message; el.hidden = false;
+  });
+  (function () {
+    var fileMode = location.protocol === 'file:';
+    setTimeout(function () {
+      if (window.__vrLoaded) return;
+      var el = document.getElementById('err');
+      el.textContent = fileMode ? 'Open this game through a web server (see README), not by double-clicking index.html.' : 'The 3D engine is taking long to load. Check your connection or reload the page.';
+      el.dataset.slow = '1'; el.hidden = false;
+    }, fileMode ? 1500 : 45000);
+  })();
+  // Optional: point online rooms at your own PeerJS server instead of the free public one.
+  // window.__VR_PEER_OPTS = { host: 'peer.yourdomain.com', port: 443, path: '/', secure: true };
+</script>
+<script type="importmap">
+{ "imports": { "three": "./lib/three/build/three.module.js", "three/addons/": "./lib/three/examples/jsm/" } }
+</script>
+<script src="lib/peerjs.min.js"></script>
+<script type="module" src="js/velocity-rift.js"></script>
+<script>
+  if ('serviceWorker' in navigator && !window.VR_DESKTOP && !window.VR_APP && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { }); });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+.section {
+  padding-block: var(--section-y);
+  border-bottom: 1px solid var(--line);
+  overflow: clip;
+}
+
+.head {
+  max-width: 36rem;
+  margin-bottom: clamp(1.75rem, 3.5vw, 2.5rem);
+}
+
+.title {
+  margin-top: 0.9rem;
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+}
+
+html[data-lang="ta"] .title {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+}
+
+.sub {
+  margin-top: 0.9rem;
+  color: var(--ink-2);
+}
+
+/* --------------------------------- Band ---------------------------------- */
+
+/* One place to change the tile geometry; the loop maths reads both. */
+.band {
+  --tile-w: 330px;
+  --tile-gap: 0.8rem;
+
+  display: grid;
+  gap: var(--tile-gap);
+}
+
+.viewport {
+  overflow: hidden;
+  /* Softens both ends so tiles enter and leave instead of being cut off. */
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 5%,
+    #000 95%,
+    transparent
+  );
+}
+
+/*
+ * No `gap` here on purpose. The loop translates the track by exactly one third
+ * of its width, so one third has to equal exactly one copy of the row. With
+ * `gap` the track measures n*tile + (n-1)*gap, a third of which falls short of
+ * a copy by two thirds of a gap - which is the few-pixel jump that made the
+ * loop stutter every turn. Each tile carries its own right margin instead, so
+ * every footprint is tile+gap and a third of the track is one exact copy.
+ */
+.track {
+  display: flex;
+  width: max-content;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .track {
+    animation: marquee 56s linear infinite;
+  }
+
+  .reverse {
+    animation-direction: reverse;
+  }
+
+  /* Let a visitor stop the band to read a caption. */
+  .viewport:hover .track {
+    animation-play-state: paused;
+  }
+}
+
+/* With motion turned off the rows hold still, so make them scrollable by hand
+   rather than leaving the rest of the row unreachable. */
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    overflow-x: auto;
+    mask-image: none;
+  }
+}
+
+/* --------------------------------- Tile ---------------------------------- */
+
+.tile {
+  position: relative;
+  flex: none;
+  width: var(--tile-w);
+  /* Part of the loop arithmetic above - not decoration. */
+  margin-right: var(--tile-gap);
+  overflow: clip;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  aspect-ratio: 16 / 9;
+  transition:
+    border-color 0.25s var(--ease),
+    box-shadow 0.25s var(--ease);
+}
+
+.tile:hover {
+  border-color: var(--accent-line);
+  box-shadow: 0 16px 34px -22px rgba(0, 0, 0, 0.9);
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease);
+}
+
+.tile:hover .img {
+  transform: scale(1.06);
+}
+
+/* Caption sits on its own scrim so it stays readable over any frame. */
+.caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 1.6rem 0.7rem 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(
+    to top,
+    rgba(6, 6, 8, 0.92),
+    rgba(6, 6, 8, 0.6) 55%,
+    transparent
+  );
+}
+
+@media (max-width: 640px) {
+  .band {
+    --tile-w: 248px;
+  }
+
+  .caption {
+    font-size: 0.72rem;
+  }
+}

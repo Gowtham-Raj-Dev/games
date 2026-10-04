@@ -1,0 +1,114 @@
+/* ------------------------------ Filter chip ------------------------------ */
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.35rem 0.4rem 0.35rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--bg-alt);
+  font-size: 0.85rem;
+}
+
+.filterLabel {
+  color: var(--ink-3);
+  font-size: 0.78rem;
+}
+
+.filterName {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.filterClear {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-raise);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+
+.filterClear:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* --------------------------------- Grid ---------------------------------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+@media (min-width: 620px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 980px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* ------------------------------ Empty state ------------------------------ */
+
+/* The dashed frame is reserved for the "nothing here" state, so an empty
+   category still reads as a deliberate space rather than a broken grid. */
+.notice {
+  display: grid;
+  place-items: center;
+  min-height: clamp(200px, 22vw, 260px);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-alt);
+}
+
+.empty {
+  max-width: 30rem;
+  text-align: center;
+}
+
+.emptyTitle {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.emptyBody {
+  margin-top: 0.45rem;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+
+.emptyAction {
+  margin-top: 1.1rem;
+}
+
+.noticeBtn {
+  padding: 0.5rem 1.1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raise);
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: border-color 0.18s var(--ease);
+}
+
+.noticeBtn:hover {
+  border-color: var(--ink);
+}

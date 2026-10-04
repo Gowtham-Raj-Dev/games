@@ -1,0 +1,26 @@
+/* A single-section page, so it carries its own tighter rhythm rather than the
+   home page's full section spacing. */
+.page {
+  --section-y: clamp(2.5rem, 5vw, 4rem);
+}
+
+.section {
+  /* The sticky header is in flow and holds its own space above this. */
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+  padding-bottom: calc(var(--section-y) * 1.5);
+}
+
+.head {
+  max-width: 36rem;
+  margin-bottom: clamp(1.75rem, 3.5vw, 2.5rem);
+}
+
+.title {
+  margin-top: 0.9rem;
+  font-size: clamp(2rem, 4.4vw, 3rem);
+}
+
+.sub {
+  margin-top: 0.9rem;
+  color: var(--ink-2);
+}

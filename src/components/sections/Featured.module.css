@@ -1,0 +1,158 @@
+.section {
+  padding-block: var(--section-y);
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+}
+
+/*
+ * The flagship card is a raised surface with a hairline, so it lifts off the
+ * section behind it rather than merging into it. The copy sits over the still
+ * on the wide layout and under it on a phone; both are light on dark, so there
+ * is one text colour and one set of button variants throughout.
+ */
+.card {
+  position: relative;
+  overflow: clip;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+  box-shadow: 0 28px 64px -34px rgba(0, 0, 0, 0.9);
+  transition: border-color 0.3s var(--ease);
+}
+
+.card:hover {
+  border-color: var(--accent-line);
+}
+
+.media {
+  position: relative;
+  overflow: clip;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-dark);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.9s var(--ease);
+}
+
+.card:hover .image {
+  transform: scale(1.04);
+}
+
+/* Fades the still into the dark card on phones, and carries the copy on wide
+   screens. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Matches --bg-raise so the still fades into the card with no visible seam. */
+  background: linear-gradient(
+    to top,
+    rgba(26, 29, 35, 1) 0%,
+    rgba(26, 29, 35, 0.72) 20%,
+    rgba(26, 29, 35, 0.12) 50%,
+    transparent 72%
+  );
+}
+
+/* --------------------------------- Copy ---------------------------------- */
+
+.body {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  color: #fff;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  /* Warm tint rather than the accent, which is not legible on near-black. */
+  color: #ffc8a8;
+}
+
+html[data-lang="ta"] .label {
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 0.86rem;
+}
+
+.title {
+  margin-top: 0.6rem;
+  font-size: clamp(1.8rem, 4vw, 2.9rem);
+  color: #fff;
+}
+
+.tagline {
+  max-width: 46ch;
+  margin-top: 0.7rem;
+  font-size: clamp(0.96rem, 1.2vw, 1.06rem);
+  color: #e3e4e7;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1.1rem;
+}
+
+.tag {
+  padding: 0.24rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #e3e4e7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.1rem;
+  font-size: 0.82rem;
+  color: #b9bbc1;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* ------------------------------- Wide layout ----------------------------- */
+
+@media (min-width: 900px) {
+  .media {
+    /* Shorter crop keeps the frame cinematic rather than square-ish. */
+    aspect-ratio: 21 / 9;
+  }
+
+  .body {
+    position: absolute;
+    inset: auto 0 0 0;
+    max-width: 44rem;
+    padding: clamp(2rem, 4vw, 3rem);
+  }
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .image {
+    animation: kenBurns 26s ease-in-out infinite alternate;
+  }
+}

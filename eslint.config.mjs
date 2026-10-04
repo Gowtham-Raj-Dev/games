@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Shipped game builds: engine-generated runtimes we neither write nor edit.
+    "public/games/**",
   ]),
 ]);
 

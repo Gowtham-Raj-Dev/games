@@ -1,0 +1,162 @@
+/* The phone control scheme. Two cards across on the narrowest screen, because
+   each one is a two-word name and a short line - a single column would make the
+   section six screens long on the device it is written for. */
+
+/* Plain ground, not the alternating grey: the pad and mode cards below sit on
+   --bg-alt themselves and would vanish into a grey band. The hairline is what
+   separates it from the section after, the same way GameInfo separates its own. */
+.section {
+  padding-block: var(--section-y);
+  border-bottom: 1px solid var(--line);
+}
+
+.head {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: clamp(1.25rem, 2.5vw, 1.85rem);
+}
+
+.title {
+  margin-top: 0.7rem;
+  font-size: clamp(1.7rem, 6vw, 2.4rem);
+}
+
+.sub {
+  max-width: 36rem;
+  color: var(--ink-2);
+}
+
+@media (min-width: 720px) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 2rem;
+  }
+}
+
+/* --------------------------------- Pads ---------------------------------- */
+
+.pads {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.pad {
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+}
+
+.padIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bg-raise);
+  color: var(--accent-ink);
+}
+
+.padName {
+  font-size: 0.98rem;
+}
+
+.padNote {
+  margin-top: 0.3rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+@media (min-width: 640px) {
+  .pads {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  .pad {
+    padding: 1.1rem;
+  }
+}
+
+/* -------------------------------- Steering ------------------------------- */
+
+.subTitle {
+  margin-top: clamp(1.6rem, 4vw, 2.4rem);
+  margin-bottom: 0.9rem;
+  font-size: 1.15rem;
+}
+
+.modes {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.mode {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+}
+
+.modeIcon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.modeName {
+  font-size: 0.95rem;
+}
+
+.modeNote {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+@media (min-width: 860px) {
+  .modes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+}
+
+/* -------------------------------- Layout --------------------------------- */
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 1.1rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.layout svg {
+  flex: none;
+  margin-top: 0.2rem;
+  color: var(--ink-3);
+}
+
+.layoutLabel {
+  margin-right: 0.4rem;
+  font-weight: 600;
+  color: var(--ink);
+}

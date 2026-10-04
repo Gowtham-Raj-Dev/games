@@ -1,0 +1,123 @@
+.section {
+  padding-block: var(--section-y);
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+}
+
+.head {
+  max-width: 36rem;
+}
+
+.title {
+  margin-top: 0.9rem;
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+}
+
+.sub {
+  margin-top: 0.9rem;
+  color: var(--ink-2);
+}
+
+/* -------------------------------- Figures -------------------------------- */
+
+.facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: clamp(2rem, 4vw, 3rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+  overflow: hidden;
+}
+
+.fact {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.fact:last-child {
+  border-bottom: 0;
+}
+
+.factValue {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.factLabel {
+  margin-top: 0.5rem;
+  font-size: 0.86rem;
+  color: var(--ink-2);
+}
+
+.factsNote {
+  margin-top: 0.8rem;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+
+/* -------------------------------- Features ------------------------------- */
+
+.features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem 2.5rem;
+  margin-top: clamp(2.25rem, 4.5vw, 3.5rem);
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--line);
+}
+
+.feature {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.featureIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raise);
+  color: var(--accent-ink);
+}
+
+.featureTitle {
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.featureDesc {
+  margin-top: 0.3rem;
+  font-size: 0.91rem;
+  color: var(--ink-2);
+  max-width: 36ch;
+}
+
+@media (min-width: 680px) {
+  .facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fact {
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+  }
+
+  .fact:last-child {
+    border-right: 0;
+  }
+
+  .features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

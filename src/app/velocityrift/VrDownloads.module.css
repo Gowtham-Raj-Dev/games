@@ -1,0 +1,228 @@
+/* Velocity Rift downloads. A phone gets rows with the button directly under the
+   name; the three-column grid returns at 760px. See VrDownloads.tsx. */
+
+.section {
+  padding-block: var(--section-y);
+  background: var(--bg-alt);
+  border-block: 1px solid var(--line);
+}
+
+.head {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: clamp(1.25rem, 2.5vw, 1.85rem);
+}
+
+.title {
+  margin-top: 0.7rem;
+  font-size: clamp(1.7rem, 6vw, 2.4rem);
+}
+
+.sub {
+  max-width: 34rem;
+  color: var(--ink-2);
+}
+
+@media (min-width: 720px) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 2rem;
+  }
+}
+
+/* -------------------------------- Cards ---------------------------------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+.card,
+.cardPhone {
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+}
+
+/* The card that matches the device in the visitor's hand. The accent is the
+   border and the badge only - the surface stays the same as its siblings, so
+   the three cards still read as one set. */
+.cardPhone {
+  border-color: var(--accent-line);
+}
+
+/* Icon, name and requirement on one line: on a phone a stacked icon above a
+   heading above a line of grey text spends a third of the screen saying very
+   little. */
+.cardHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.iconBox {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  color: var(--ink);
+}
+
+.names {
+  min-width: 0;
+}
+
+.name {
+  font-size: 1.1rem;
+}
+
+.requires {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.badge {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+/* ------------------------------- Actions --------------------------------- */
+
+/* The button comes before the steps on a phone: somebody who has decided does
+   not have to read three lines of instructions to reach it. */
+.foot {
+  margin-top: 1rem;
+}
+
+.action,
+.actionDark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raise);
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition:
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+
+.action:hover {
+  border-color: var(--ink);
+}
+
+.actionDark {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.actionDark:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.playIcon {
+  fill: var(--bg);
+}
+
+.actionMeta {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+/* -------------------------------- Steps ---------------------------------- */
+
+.steps {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.step {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.stepNo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 0.1rem;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+/* -------------------------------- Desktop -------------------------------- */
+
+@media (min-width: 760px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .card,
+  .cardPhone {
+    padding: 1.4rem;
+  }
+
+  /* Back to the stacked card: with a third of the row each there is room for
+     the icon to sit above the name again, and the steps lead to the button. */
+  .cardHead {
+    display: block;
+  }
+
+  .iconBox {
+    margin-bottom: 0.9rem;
+  }
+
+  .badge {
+    display: inline-block;
+    margin-top: 0.6rem;
+  }
+
+  .foot {
+    order: 2;
+    margin-top: 1.4rem;
+  }
+
+  .steps {
+    flex: 1;
+    margin-top: 1.1rem;
+  }
+}

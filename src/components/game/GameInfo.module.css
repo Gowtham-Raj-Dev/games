@@ -1,0 +1,469 @@
+/* Content sections of a game page. They reuse the home page's rhythm: a
+   section band, an eyebrow, a heading, then the grid. */
+
+.section,
+.sectionAlt {
+  padding-block: var(--section-y);
+  border-bottom: 1px solid var(--line);
+  /*
+   * These five sections sit below the player and hold 8 screenshots, 5 vehicle
+   * cards and 11 control rows. While the game is running the browser would
+   * otherwise keep laying out and painting all of it on every scroll frame,
+   * competing with the WebGL canvas. `auto` lets it skip the work for anything
+   * off screen; the intrinsic size keeps the scrollbar honest meanwhile.
+   *
+   * Deliberately not applied to the downloads section above - that one is an
+   * anchor target (#download), and skipped content would make the jump land
+   * short before it rendered.
+   */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+.sectionAlt {
+  background: var(--bg-alt);
+}
+
+.head {
+  display: grid;
+  gap: 1.1rem;
+  margin-bottom: clamp(1.25rem, 2.5vw, 1.85rem);
+}
+
+.title {
+  margin-top: 0.7rem;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+}
+
+.lead {
+  max-width: 38rem;
+  color: var(--ink-2);
+}
+
+.subTitle {
+  margin-bottom: 1.1rem;
+  font-size: 1.1rem;
+}
+
+@media (min-width: 760px) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: end;
+    gap: 2.5rem;
+  }
+}
+
+/* -------------------------------- Features ------------------------------- */
+
+.features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+.feature {
+  padding: 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+}
+
+.featureIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  color: var(--ink);
+}
+
+.featureTitle {
+  font-size: 1rem;
+}
+
+.featureText {
+  margin-top: 0.4rem;
+  font-size: 0.87rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+@media (min-width: 620px) {
+  .features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1020px) {
+  .features {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* -------------------------------- Vehicles ------------------------------- */
+
+.vehicles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+.vehicle {
+  padding: 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+}
+
+.vehicleName {
+  font-size: 1.1rem;
+}
+
+.vehicleNote {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+
+.stats {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.1rem;
+}
+
+.stat {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+
+.statValue {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.statNumber {
+  flex: none;
+  width: 2.1rem;
+  font-family: var(--font-head);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.track {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+/* The stat bars take the accent - the one place a filled bar appears, so it
+   reads as the brand rather than as more grey chrome. */
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+@media (min-width: 560px) {
+  .vehicles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* auto-fill rather than a fixed count: one title has 5 vehicles, another 9. */
+@media (min-width: 980px) {
+  .vehicles {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* --------------------------------- Gallery ------------------------------- */
+
+.shots {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+
+.shot {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-alt);
+}
+
+.shotImg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-bottom: 1px solid var(--line);
+}
+
+.shotCap {
+  padding: 0.7rem 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+@media (min-width: 620px) {
+  .shots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 980px) {
+  .shots {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* -------------------------------- Circuits ------------------------------- */
+
+.stages {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+.stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+}
+
+.stageNo {
+  flex: none;
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-ink);
+}
+
+.stageName {
+  display: block;
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stageNote {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+@media (min-width: 620px) {
+  .stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1020px) {
+  .stages {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* --------------------------- Controls + dialogue ------------------------- */
+
+.split {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+
+@media (min-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 2.5rem;
+  }
+}
+
+.keys {
+  display: grid;
+  gap: 0;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+}
+
+.keyRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.keyRow:last-child {
+  border-bottom: 0;
+}
+
+.kbd {
+  display: inline-block;
+  min-width: 3.6rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--bg-alt);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink);
+}
+
+.keyAction {
+  font-size: 0.89rem;
+  color: var(--ink-2);
+}
+
+/* No dialogue beside it, so the list spreads into columns instead of leaving
+   half the row empty. */
+.keysWide {
+  display: grid;
+  gap: 0 2.5rem;
+  padding: 0.4rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+}
+
+@media (min-width: 760px) {
+  .keysWide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The last row of each column should not carry a divider. */
+  .keysWide .keyRow:last-child,
+  .keysWide .keyRow:nth-last-child(2) {
+    border-bottom: 0;
+  }
+}
+
+/* ------------------------------- Dialogue -------------------------------- */
+
+.chatSub {
+  margin-top: -0.6rem;
+  margin-bottom: 1.2rem;
+  font-size: 0.87rem;
+  color: var(--ink-2);
+}
+
+.lines {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.lineThem,
+.lineYou {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 85%;
+}
+
+.lineYou {
+  justify-items: end;
+  justify-self: end;
+  text-align: right;
+}
+
+.who {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.bubble {
+  padding: 0.65rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-raise);
+  font-size: 0.89rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* The rider's own lines take the light fill, matching the `onDark` button. */
+.lineYou .bubble {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* ----------------------------------- FAQ --------------------------------- */
+
+.faq {
+  display: grid;
+  gap: 0.65rem;
+  max-width: 48rem;
+}
+
+.item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+}
+
+.question {
+  padding: 1rem 1.2rem;
+  font-family: var(--font-head);
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* Replace the default marker with a plus that turns into a minus, so the
+   control reads the same in every browser. */
+.question::-webkit-details-marker {
+  display: none;
+}
+
+.question::after {
+  content: "+";
+  float: right;
+  margin-left: 1rem;
+  font-weight: 400;
+  color: var(--accent-ink);
+}
+
+.item[open] .question::after {
+  content: "\2212";
+}
+
+.answer {
+  padding: 0 1.2rem 1.1rem;
+  font-size: 0.89rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}

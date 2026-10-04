@@ -1,0 +1,105 @@
+/* Collection card. Mirrors the category card: hairline border, one accent
+   touch, a small lift on hover. No new colours or faces. */
+
+.card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raise);
+  transition:
+    border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+
+.card:hover,
+.card:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--line-strong);
+  box-shadow: 0 16px 32px -20px rgba(0, 0, 0, 0.8);
+}
+
+/* --------------------------------- Media --------------------------------- */
+
+.media {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-alt);
+}
+
+.cover {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.badge {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--bg-raise);
+  border: 1px solid var(--line-strong);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent-ink);
+}
+
+/* --------------------------------- Body ---------------------------------- */
+
+.body {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  padding: 1.25rem;
+}
+
+.name {
+  font-size: 1.2rem;
+}
+
+.tagline {
+  font-size: 0.89rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+}
+
+.tag {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-alt);
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent-ink);
+}
+
+.cta svg {
+  transition: transform 0.18s var(--ease);
+}
+
+.card:hover .cta svg {
+  transform: translateX(3px);
+}

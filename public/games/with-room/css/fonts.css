@@ -1,0 +1,107 @@
+/* ============================================================================
+   WITHROOM - TYPEFACES
+   ----------------------------------------------------------------------------
+   Self-hosted, SIL Open Font License. Four families, three jobs.
+
+   The whole set changed, and it changed DIRECTION rather than just swapping one
+   grotesque for another. The old set was condensed sans throughout, which is
+   the typography of a sports broadcast and of about half the games on Steam. It
+   was legible and it was anonymous, and a horror title whose type looks like a
+   UI kit has given the game away before the first line of dialogue.
+
+     Cinzel           display. Roman capitals cut from the same tradition as the
+                      inscriptional letters on a film poster - the face every
+                      cinema trailer has used for forty years, and the reason
+                      "CODELOVE GAMES PRESENTS" now reads as a title card rather
+                      than as a heading. It has no lower case worth the name, so
+                      everything set in it is set in caps on purpose.
+
+     Spectral         body prose and subtitles. A serif drawn FOR SCREENS, with
+                      a tall x-height and open counters, so it survives at 14px
+                      on a dark panel where a book serif would silt up. Serif
+                      body text is what makes the difference between a game that
+                      is telling you a story and a game that is showing you a
+                      tooltip.
+
+     Share Tech Mono  EVERY numeral in the game. The run timer, the dimension
+                      readout, the keypad, the stability percentage. Mechanical,
+                      single-width, and slightly technical - these are
+                      instrument readings, not prose, and they should look like
+                      something is MEASURING the player.
+
+     Noto Serif Tamil second in every stack, so a Tamil string falls through to
+                      it rather than to a system default that may not carry the
+                      conjuncts. Serif, to sit with Cinzel and Spectral instead
+                      of fighting them - the Tamil build should feel like the
+                      same game, not a translation bolted on.
+
+   font-display:swap everywhere: the first paint of a horror game should be the
+   room, not a blank screen waiting on a label font.
+
+   Only the weights actually used are declared, and no italics are loaded at
+   all - the type system here is upright by design (see style.css).
+============================================================================ */
+
+/* ---- Cinzel (display: titles, menus, labels) ----------------------------- */
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/cinzel-400.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(../assets/fonts/cinzel-600.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../assets/fonts/cinzel-700.woff2) format('woff2');
+}
+
+/* ---- Spectral (body prose, dialogue, subtitles) -------------------------- */
+@font-face {
+  font-family: 'Spectral';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/spectral-400.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Spectral';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(../assets/fonts/spectral-600.woff2) format('woff2');
+}
+
+/* ---- Share Tech Mono (all numerals) -------------------------------------- */
+@font-face {
+  font-family: 'Share Tech Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/sharetechmono-400.woff2) format('woff2');
+}
+
+/* ---- Noto Serif Tamil ---------------------------------------------------- */
+@font-face {
+  font-family: 'Noto Serif Tamil';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(../assets/fonts/notoseriftamil-500.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Noto Serif Tamil';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../assets/fonts/notoseriftamil-700.woff2) format('woff2');
+}

@@ -1,40 +1,129 @@
+/* ==========================================================================
+   Foundation: tokens, reset, base typography.
+
+   Design rules this file enforces:
+   - Dark, high-contrast, generous whitespace. Game screenshots carry the
+     colour; the interface stays near-neutral so it never competes with them.
+   - ONE warm accent, used sparingly for labels, selected state and primary
+     actions.
+   - Every text token below is measured against the surface it sits on and
+     clears WCAG AA.
+   - No element is ever hidden by default. There is no opacity:0 start state,
+     no gradient-clipped text and no text-stroke anywhere, so content cannot
+     disappear if JavaScript or a CSS feature is unavailable.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /*
+   * Surfaces, darkest to lightest. `--bg-alt` alternates sections and
+   * `--bg-raise` lifts cards and panels off whichever of the two is behind
+   * them. `--bg-dark` is deeper than the page, for framing a game canvas.
+   */
+  --bg: #0b0c0e;
+  --bg-alt: #13151a;
+  --bg-raise: #1a1d23;
+  --bg-dark: #08090b;
+
+  /*
+   * Text. Measured against the three surfaces above - worst case shown:
+   *   --ink    15.6:1    --ink-2  7.7:1    --ink-3  5.5:1
+   */
+  --ink: #f5f6f8;
+  --ink-2: #aab0ba;
+  --ink-3: #8e949e;
+  --on-dark: #f5f6f8;
+  --on-dark-2: #aab0ba;
+
+  /*
+   * Lines. The first two are decorative hairlines. `--line-ui` is the only one
+   * bright enough (3.6:1) to carry the boundary of an interactive control on
+   * its own, so secondary buttons and inputs use that.
+   */
+  --line: #24272e;
+  --line-strong: #353942;
+  --line-ui: #646a75;
+
+  /*
+   * The single accent, retuned for a dark ground.
+   *   --accent      fill colour, and 7.5:1 as a hairline
+   *   --accent-ink  accent as text, 8.6:1 worst case
+   *   --accent-on   text sitting on an accent fill, 7.3:1
+   *   --accent-soft dark warm surface for chips
+   */
+  --accent: #ff7a33;
+  --accent-ink: #ffa273;
+  --accent-on: #1a0d04;
+  --accent-soft: #1f1711;
+  --accent-line: rgba(255, 122, 51, 0.38);
+
+  /* Type */
+  --font-head: var(--font-display), "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-body), "Segoe UI", system-ui, sans-serif;
+  --font-brand: var(--font-display), "Segoe UI", system-ui, sans-serif;
+
+  /* Rhythm */
+  --shell: 1200px;
+  --gutter: clamp(1.25rem, 5vw, 3.5rem);
+  --section-y: clamp(4.5rem, 9vw, 8rem);
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
 }
 
 html {
-  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  /*
+   * Deliberately NOT `scroll-behavior: smooth`.
+   *
+   * That property animates every scroll, including the one the router performs
+   * on navigation - and while that animation runs, the `content-visibility`
+   * sections on a game page render and grow the document, so the target keeps
+   * moving down and the animation chases it to the footer.
+   *
+   * In-page anchors are still smooth: `scrollToId()` in src/lib/scroll.ts asks
+   * for it explicitly, and honours prefers-reduced-motion while doing so.
+   */
+  scroll-padding-top: 90px;
 }
 
-html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-head);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+p {
+  text-wrap: pretty;
 }
 
 a {
@@ -42,8 +131,181 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ------------------------------- Layout ---------------------------------- */
+
+.shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---------------------------- Shared pieces ------------------------------ */
+
+/* Small accent label above a section heading. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1.5px;
+  background: var(--accent);
+  flex: none;
+}
+
+/* ---------------------------- Accessibility ------------------------------ */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skipLink {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 200;
+  transform: translate(-50%, -120%);
+  padding: 0.7rem 1.2rem;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 0 0 8px 8px;
+  transition: transform 0.2s var(--ease);
+}
+
+.skipLink:focus-visible {
+  transform: translate(-50%, 0);
+}
+
+/* ------------------------------- Motion ---------------------------------- */
+
+/*
+ * The only entrance animation in the project. It is a pure CSS animation on
+ * elements that are already visible at their final opacity by default, so a
+ * failure here can never hide content.
+ */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07);
+  }
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes marquee {
+  to {
+    /*
+     * The track holds the row three times over and travels exactly one copy,
+     * so the loop is seamless. Three rather than two keeps the track wider
+     * than the viewport on ultrawide screens, where two copies could leave a
+     * gap at the wrap point.
+     */
+    transform: translateX(-33.3333%);
+  }
+}
+
+/*
+ * Scroll-triggered entrances, done with a CSS scroll-driven animation rather
+ * than an IntersectionObserver that toggles a class.
+ *
+ * Why this is safe: the rule only exists inside @supports, so a browser without
+ * `animation-timeline` applies nothing at all and the element simply renders at
+ * its normal opacity. There is no JavaScript in the path and no default hidden
+ * state, so content can never be stranded invisible.
+ *
+ * `entry` progress is 100% for anything already fully on screen, which means
+ * content above the fold - and content the visitor scrolls back to - is shown
+ * without waiting for anything.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: riseIn 1s linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 50%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+  }
+
+  /* Belt and braces: if the animation above is ever disabled mid-flight, the
+     element must still be fully visible. */
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

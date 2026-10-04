@@ -1,0 +1,445 @@
+/* ============================================================================
+   THE ROOM THAT GETS BIGGER - PHONE LAYOUT
+   ----------------------------------------------------------------------------
+   A separate design, not the desktop one squeezed.
+
+     HUD        the desktop HUD pins four independent corners over the canvas.
+                On a 360px-tall landscape phone those corners are about 90px
+                apart and they collide. Here .hud-top stops being a
+                display:contents pass-through and becomes a real three-column
+                strip, so the readouts cannot land on top of each other at any
+                size the screen can reach.
+     controls   a left half that is one big invisible movement zone with a
+                floating stick, a right half that is bare drag-to-look, and a
+                four-button cluster in the bottom-right corner. Nothing sits
+                in the middle, because the middle is the room.
+     shells     the menu plate and every overlay card go full width, because a
+                centred 540px card on a 390px screen is a 390px card with the
+                edges cut off.
+
+   Everything is gated on a body class the engine sets:
+     .touch   coarse pointer              -> HUD strip + control rig
+     .phone   coarse AND a small screen   -> menu and overlay shells as well
+   A touch laptop therefore keeps the desktop shells, which suit it.
+
+   Loaded after style.css, so plain specificity wins. There is no !important
+   in this file at all.
+============================================================================ */
+
+
+/* ========================== 1. TOUCH SCALE ================================
+   Everything in the rig is sized from the SHORT edge of the screen, not from
+   the viewport height.
+
+   On a landscape phone vh IS the short edge, so a vh-sized control shrinks
+   exactly when the screen is at its widest and there is the most room for it.
+   svmin is the small-viewport short edge, which is the dimension a thumb
+   actually has to reach across, and it does not jump when the browser chrome
+   slides away mid-game.
+
+   --edge is redefined here rather than overridden per element: style.css
+   anchors every edge-pinned element with calc(env(...) + var(--edge)), so one
+   declaration tightens the whole screen margin at once.
+========================================================================== */
+
+body.touch {
+  --u: 1svmin;
+
+  /* The stick ring mirrors the engine, which sets its travel radius to
+     clamp(shortEdge * .16, 44, 88) px. Diameter is therefore 32svmin clamped
+     to 88..176, and the ring the player sees is the radius they actually get.
+     If that formula changes in js/player/input/touch.js, change it here too. */
+  --stick: clamp(88px, 32 * var(--u), 176px);
+  --knob: clamp(34px, 12 * var(--u), 66px);
+
+  --act: clamp(54px, 15 * var(--u), 76px);
+  --act-use: clamp(72px, 21 * var(--u), 104px);
+  --rig-gap: 10px;
+
+  --edge: 12px;
+}
+@supports not (width: 1svmin) { body.touch { --u: 1vmin } }
+
+
+/* ========================== 2. HUD STRIP ================================== */
+
+body.touch #hud { display: grid; grid-template-rows: auto minmax(0, 1fr); align-content: start }
+
+/* The wrapper earns its keep here. On desktop it is display:contents and the
+   two readouts pin their own corners; here it is the strip that guarantees
+   they cannot overlap however short the screen gets. */
+body.touch .hud-top {
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 8px)
+    calc(env(safe-area-inset-right, 0px) + var(--edge)) 0
+    calc(env(safe-area-inset-left, 0px) + var(--edge));
+  /* Pointer events are switched off by `#hud .hud-top` in style.css, which is
+     where they have to be switched off: a `body.touch .hud-top` rule here
+     carries no id and loses to the `#hud > *` that turned them on. */
+}
+/* The readouts stop free-floating and sit in the strip instead. */
+body.touch .hud-top .stability,
+body.touch .hud-top .playclock,
+body.touch .hud-top .dims { position: static; inset: auto }
+
+body.touch .stability { width: clamp(132px, 34 * var(--u), 200px); gap: 6px 8px }
+body.touch .stability .lbl { font-size: 8px; letter-spacing: .18em }
+body.touch .stability .num { font-size: clamp(13px, 3.8 * var(--u), 17px) }
+body.touch .stability .bar { height: 6px }
+
+body.touch .dims { justify-self: end; gap: 8px }
+body.touch .dims .d { min-width: clamp(44px, 12 * var(--u), 62px); padding-top: 5px; gap: 4px }
+body.touch .dims .lbl { font-size: 8px; letter-spacing: .14em }
+body.touch .dims .num { font-size: clamp(13px, 3.8 * var(--u), 18px) }
+body.touch .dims::after { font-size: 9px }
+
+/* Pause takes the free middle column of the strip. It stays absolutely
+   positioned rather than joining the grid, because it is not inside
+   .hud-top - and dead centre is the one place on a phone HUD that no readout
+   and no thumb ever wants. 44px minimum, like every other target here. */
+body.touch #btnPause {
+  left: 50%;
+  right: auto;
+  top: calc(env(safe-area-inset-top, 0px) + 5px);
+  transform: translateX(-50%);
+  width: 44px;
+  height: 44px;
+  background: rgba(5, 6, 7, .62);
+}
+body.touch #btnPause svg { width: 16px; height: 16px }
+
+/* Clear of the strip above it. */
+body.touch #objective {
+  top: calc(env(safe-area-inset-top, 0px) + 58px);
+  max-width: min(42ch, 66vw);
+  font-size: 13px;
+}
+
+body.touch #crosshair { width: 18px; height: 18px }
+
+body.touch #msg { top: 22%; font-size: clamp(20px, 5.4vw, 38px) }
+body.touch #msg.small { font-size: clamp(15px, 3.4vw, 22px) }
+body.touch #sub {
+  top: calc(22% + clamp(32px, 7vw, 56px));
+  font-size: 11px;
+  letter-spacing: .22em;
+}
+
+/* Lifted clear of the action cluster, which is the tallest thing on the
+   bottom edge. The prompt is centred and the cluster is in the corner, but a
+   long object name on a narrow phone reaches across both. */
+body.touch #prompt {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--act-use) + 30px);
+  gap: 9px;
+  padding: 8px 13px 8px 9px;
+}
+/* The engine swaps the key glyph for a tap icon here, so the kbd stops
+   pretending to have a keycap edge and becomes a plain square target. */
+body.touch #prompt kbd {
+  min-width: 30px;
+  height: 30px;
+  border-bottom-width: 1px;
+  font-size: 13px;
+}
+body.touch #promptName { font-size: 14px }
+body.touch #promptVerb { font-size: 10px }
+
+body.touch #subtitle {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  max-width: min(48ch, 62vw);
+  padding: 7px 12px;
+  font-size: 14px;
+}
+
+body.phone #debug { max-width: 62vw; max-height: 30vh; font-size: 10px }
+
+
+/* ========================== 3. CONTROL RIG ================================
+   No backdrop-filter anywhere in here. Six live blurs over a moving 3D scene
+   cost more frames than the effect is worth, and the fills are near-opaque
+   already.
+========================================================================== */
+
+body.touch #touch { pointer-events: none }
+
+/* The two halves of the screen. Both invisible: a visible movement pad would
+   permanently cover a quarter of a room the player is meant to be searching.
+
+   They start below the HUD strip rather than at the top of the screen, so
+   reaching for pause can never be read as the start of a look-drag. */
+body.touch #touch .zone {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 54px);
+  bottom: 0;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+body.touch #touch .zone.move { left: 0; right: 50% }
+body.touch #touch .zone.look { left: 50%; right: 0 }
+
+/* ---- floating stick ------------------------------------------------------
+   The engine places this in viewport pixels with inline left/top wherever the
+   thumb lands, which is why it is position:fixed and translated by half its
+   own size rather than laid out. It is shown with .on and never takes a
+   pointer itself - the zone underneath owns the gesture from first contact to
+   release, so the stick can be dragged outside its own box without the
+   pointer ever being handed over. */
+body.touch #touch .stick {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--stick);
+  height: var(--stick);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 130ms linear;
+}
+body.touch #touch .stick.on { opacity: 1; transition-duration: 80ms }
+
+/* A square, not a ring. Every other round control in this game was cut for
+   reading as a wheel, and a surveyor reticle under the thumb is both on-brand
+   and easier to read at a glance than a plain circle: the crosshair tells the
+   player where centre is without them looking down. */
+body.touch #touch .stick .ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(222, 226, 228, .26);
+  border-radius: var(--r-2);
+  background: radial-gradient(circle at 50% 50%, rgba(5, 6, 7, .44), rgba(5, 6, 7, .10) 74%);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, .5);
+}
+body.touch #touch .stick .ring::before,
+body.touch #touch .stick .ring::after {
+  content: "";
+  position: absolute;
+  background: rgba(222, 226, 228, .14);
+}
+body.touch #touch .stick .ring::before { left: 50%; top: 16%; bottom: 16%; width: 1px; margin-left: -.5px }
+body.touch #touch .stick .ring::after { top: 50%; left: 16%; right: 16%; height: 1px; margin-top: -.5px }
+
+/* The engine writes an inline transform on the knob every frame, which
+   includes its own translate(-50%,-50%). The one declared here only has to
+   hold for the single frame before the first paint. */
+body.touch #touch .stick .knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--knob);
+  height: var(--knob);
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--sig);
+  border-radius: var(--r-2);
+  background: linear-gradient(180deg, rgba(111, 224, 189, .20), rgba(111, 224, 189, .08));
+  box-shadow: 0 0 18px rgba(111, 224, 189, .22), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+
+/* ---- action cluster ------------------------------------------------------
+   A stepped two-by-two block in the thumb corner. Interact is the only
+   control the player uses in every single room, so it gets the whole bottom
+   right cell and the other three are satellites around it. */
+body.touch #touch .acts {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + var(--edge));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--edge));
+  display: grid;
+  grid-template-columns: var(--act) var(--act-use);
+  grid-template-rows: var(--act) var(--act-use);
+  gap: var(--rig-gap);
+  justify-items: end;
+  align-items: end;
+  pointer-events: none;
+}
+body.touch #touch .act {
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  display: grid;
+  place-items: center;
+  width: var(--act);
+  height: var(--act);
+  border: 1px solid rgba(222, 226, 228, .20);
+  border-radius: var(--r-3);
+  background: linear-gradient(180deg, rgba(18, 21, 24, .72), rgba(8, 9, 11, .68));
+  color: var(--fg-2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(222, 226, 228, .07);
+  transition: border-color 90ms linear, color 90ms linear, background 90ms linear, box-shadow 90ms linear;
+}
+body.touch #touch .act svg { width: 46%; height: 46% }
+body.touch #touch .act-sprint { grid-area: 1 / 1 }
+body.touch #touch .act-crouch { grid-area: 1 / 2 }
+body.touch #touch .act-drop { grid-area: 2 / 1 }
+body.touch #touch .act-use {
+  grid-area: 2 / 2;
+  width: var(--act-use);
+  height: var(--act-use);
+  border-color: rgba(111, 224, 189, .40);
+  color: var(--fg);
+}
+body.touch #touch .act-use svg { width: 44%; height: 44% }
+
+/* Pressed brightens the EDGE, never the fill.
+
+   This is a dark game played in a dark room: a button that flashes to a solid
+   bright colour under a thumb throws light across the whole screen and
+   wrecks the night adaptation the rest of the art direction depends on. A
+   signal-coloured rim plus an inner glow is just as readable with a thumb
+   sitting on top of it, and costs the player nothing.
+
+   .on is the momentary press; aria-pressed is the latched state the engine
+   sets on sprint and crouch. Both land on the same treatment on purpose - to
+   the thumb they mean the same thing. */
+body.touch #touch .act.on,
+body.touch #touch .act[aria-pressed="true"] {
+  border-color: var(--sig);
+  color: var(--sig);
+  background: linear-gradient(180deg, rgba(18, 21, 24, .80), rgba(8, 9, 11, .76));
+  box-shadow:
+    0 0 0 1px var(--sig-glow),
+    0 0 26px rgba(111, 224, 189, .20),
+    inset 0 0 18px rgba(111, 224, 189, .09);
+}
+
+
+/* ========================== 4. OVERLAY SHELLS =============================
+   Full-height cards with their own scroll, so a long settings sheet never
+   pushes its Done row off the bottom of a short screen.
+========================================================================== */
+
+body.phone .overlay { padding: 0; place-items: stretch }
+body.phone .card {
+  width: 100%;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 20px) 18px
+    calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+/* The sheet mark moves in with the content now that the card has no edge. */
+body.phone .card { background-size: 56px 2px; background-position: 18px 0 }
+body.phone .card h2 { font-size: 24px }
+body.phone .card .lede { font-size: 15px }
+
+/* Only the CLOSING row pins to the bottom; an earlier .btns stays in flow.
+   The fade behind it stops text scrolling up to the buttons and sitting
+   half-visible under them. */
+body.phone .card > .btns:last-child {
+  margin-top: auto;
+  padding-top: 18px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(13, 15, 17, 0), var(--panel-solid) 30%);
+}
+body.phone .card .btns button { flex-basis: 120px; min-height: 50px }
+
+body.phone .setgrid { grid-template-columns: 1fr; gap: var(--s-5) }
+body.phone .readout { grid-template-columns: 1fr 1fr }
+body.phone .kgrid { grid-template-columns: 1fr }
+
+/* Desktop puts a 36px segment cell and a 28px slider in a settings row, which
+   are 10px targets with a thumb on them. */
+/* The other half of the .touchonly gate in style.css. The engine still has to
+   clear the hidden attribute; this only decides what display it gets back. */
+body.touch .row.touchonly { display: flex }
+
+body.phone .row { min-height: 50px; gap: var(--s-2) }
+body.phone .row > .lbl { min-width: 76px }
+body.phone .seg button { min-height: 44px; font-size: 12px }
+body.phone input[type="range"] { height: 44px }
+body.phone .row > output { flex-basis: 40px }
+
+
+/* ========================== 5. MENU SHELL ================================= */
+
+/* The measuring rule down the left margin needs a margin to live in. */
+
+/* At 360px the brand plus four controls do not fit and the last one is
+   clipped off the edge. The icons carry enough meaning on their own, and
+   both sheets are reachable from pause as well. */
+body.phone .langpill button { padding: 11px 13px }
+
+/* ========================== 6. LOADING + ROTATE =========================== */
+
+
+body.phone .ld-name { font-size: clamp(22px, 7vw, 32px) }
+body.phone .ld-plan { width: min(220px, 62%); margin: var(--s-5) 0 var(--s-4) }
+
+body.phone #rotate { gap: var(--s-3) }
+body.phone #rotate svg { width: 52px; height: 52px }
+body.phone #rotate p { font-size: 17px }
+body.phone #rotate p.muted { font-size: 14px }
+/* Defensive: the turn-your-phone card has no business being on screen once
+   the screen is already wide, whatever the engine has or has not got round to
+   doing with the hidden attribute. */
+@media (orientation: landscape) { body.phone #rotate { display: none } }
+
+
+/* ========================== 7. SHORT LANDSCAPE ============================
+   A phone on its side is about 390px tall. A plate across the bottom of that
+   leaves the cell a 90px strip with its own name printed over the ceiling, so
+   the same two parts turn ninety degrees: room on the left, plate down the
+   right. Overlay cards go two columns for the same reason.
+========================================================================== */
+
+@media (orientation: landscape) and (max-height: 470px) {
+  body.phone .card { padding-top: calc(env(safe-area-inset-top, 0px) + 12px) }
+  body.phone .card h2 { font-size: 21px; margin: 6px 0 8px }
+  body.phone .setgrid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--s-4) var(--s-5) }
+  body.phone .card .btns button { min-height: 46px }
+
+
+  /* The objective line is the one HUD element that can be read from the pause
+     sheet instead, and at this height it is the one competing with the room. */
+  body.touch #objective { display: none }
+  body.touch #subtitle { bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); font-size: 13px }
+
+  /* The rig drops a size. The derived tokens are restated rather than --u,
+     because --act and friends were already resolved against the --u that was
+     in scope where they were declared - changing --u lower down the tree does
+     not retroactively change them. */
+  body.touch {
+    --stick: clamp(80px, 28 * var(--u), 140px);
+    --knob: clamp(30px, 11 * var(--u), 54px);
+    --act: clamp(48px, 13 * var(--u), 64px);
+    --act-use: clamp(62px, 18 * var(--u), 86px);
+    --rig-gap: 8px;
+  }
+}
+
+/* Very short landscape - a small phone with the browser chrome still showing.
+   The dimension readout keeps the numbers and loses the unit stamp. */
+@media (orientation: landscape) and (max-height: 360px) {
+  body.touch .hud-top { gap: 6px; padding-top: calc(env(safe-area-inset-top, 0px) + 4px) }
+  body.touch .stability { width: clamp(118px, 30 * var(--u), 150px) }
+  body.touch .dims::after { display: none }
+  body.touch #btnPause { width: 44px; height: 44px; top: calc(env(safe-area-inset-top, 0px) + 2px) }
+  body.touch #touch .zone { top: calc(env(safe-area-inset-top, 0px) + 48px) }
+  body.touch #msg { top: 18% }
+  body.touch #sub { top: calc(18% + clamp(28px, 6vw, 44px)) }
+}
+
+
+/* ========================== 8. TAMIL ======================================
+   style.css flattens tracking with a single :is() rule carrying an id, which
+   resolves at (1,1,1). The few id-scoped rules in this file that restate a
+   letter-spacing sit at the same specificity and would otherwise win on
+   source order, since this file loads second. One matching rule puts them
+   back rather than scattering language checks through the layout above.
+========================================================================== */
+
+
+/* Same story for the optical nudge on the title block subtitle: the phone
+   rule restates the whole padding shorthand, which puts the left correction
+   back after style.css had removed it. */

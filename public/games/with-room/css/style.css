@@ -1,0 +1,1638 @@
+/* ============================================================================
+   THE ROOM THAT GETS BIGGER - DESKTOP + BASE
+   ============================================================================
+   The look is an architectural survey drawing that somebody left running as an
+   instrument panel: hairlines, right angles, tick marks, small tracked labels,
+   and every number set in mono so the dimension readout and the stability
+   percentage read as measurements rather than as score.
+
+   Three rules carry the identity, and all three are deliberate reversals of
+   the sibling game in this folder (Velocity Rift), which is a racer:
+
+     UPRIGHT    nothing is italic and no bar is skewed. A skewed bar reads as
+                speed; this game is about stillness and geometry. The only
+                rounded thing in the build is the language pill.
+     MEASURED   every numeral is Share Tech Mono with single-width figures, so a digit
+                that changes never shifts the digit beside it. A dimension that
+                jitters while it counts stops being a measurement.
+     STILL      panels fade in - opacity only, ~900ms, staggered. They do not
+                slide in from the edges. The only infinite loop in this file is
+                a 4s opacity breath that exists ONLY while the room is moving
+                (body.room-shifting / body.room-critical). Stillness is the
+                mood; motion is information.
+
+   Colour does one job each:
+     --sig   cold phosphor green   measured / stable / selected / focus
+     --warn  sodium amber          the room is shifting
+     --crit  arterial red          breach, collapse, game over
+     --cold  steel                 inert readouts that mean nothing yet
+
+   The phone layout lives in mobile.css. That file is its own design, not a
+   stack of overrides on this one, and it loads second so plain specificity
+   wins - it contains no !important at all.
+
+   The only !important in this system is the [hidden] rule directly below and
+   the reduced-motion block at the very bottom of this file.
+============================================================================ */
+
+:root {
+  /* ---- Surfaces ---------------------------------------------------------
+     --ink is the void the room sits in. --panel-solid is the only opaque
+     surface; everything else is a translucent film over the live canvas so
+     the room stays faintly visible behind the interface. */
+  --ink: #050607;
+  --ink-deep: #030405;
+  --panel: rgba(13, 15, 17, .82);
+  --panel-solid: #0d0f11;
+  --panel-raise: #14171a;
+
+  /* ---- Text -------------------------------------------------------------
+     Contrast against --panel-solid, worst case:
+       --fg 15.4:1    --fg-2 8.1:1    --dim 4.9:1
+     --dim is therefore only ever used for 9-12px tracked labels and short
+     secondary prose, never for anything a player has to read at speed. */
+  --fg: #e4e7e9;
+  --fg-2: #aeb5bb;
+  --dim: #767f88;
+
+  /* ---- Lines ------------------------------------------------------------
+     Two decorative hairlines and one bright enough (3.4:1) to carry the
+     boundary of an interactive control on its own. */
+  --line: rgba(222, 226, 228, .10);
+  --line-strong: rgba(222, 226, 228, .20);
+  --line-ui: rgba(222, 226, 228, .34);
+
+  /* ---- Signal colours ---------------------------------------------------
+     Each has a fill value and, where the fill is too dark to set type in, an
+     -ink companion that clears AA on --panel-solid. --crit lands at 3.3:1, so
+     it is a stroke and a fill only; --crit-ink is what the words are set in. */
+  --sig: #6fe0bd;
+  --sig-on: #04120d;
+  --sig-wash: rgba(111, 224, 189, .10);
+  --sig-wash-2: rgba(111, 224, 189, .20);
+  --sig-glow: rgba(111, 224, 189, .32);
+
+  --warn: #d9a441;
+  --warn-ink: #e4b662;
+  --warn-wash: rgba(217, 164, 65, .12);
+
+  --crit: #c0353c;
+  --crit-ink: #e8646a;
+  --crit-wash: rgba(192, 53, 60, .14);
+
+  --cold: #5c7d9c;
+  --cold-ink: #8aa9c4;
+
+  /* ---- Type -------------------------------------------------------------
+     RETYPED, AND IN A DIFFERENT DIRECTION. The build has been through two sans
+     systems now - a wide grotesque, then a condensed one - and the second was
+     not really an improvement on the first, because both of them were sans. A
+     condensed sans is the typography of a sports graphic and of a UI kit; it is
+     clean, it is anonymous, and it told the player nothing about what kind of
+     game this is before a word of the story had been spoken.
+
+     --display is Cinzel: inscriptional Roman capitals, the lettering cut into
+     stone and, for the last forty years, the lettering on the poster of almost
+     every film with a ghost in it. It is wide and it is formal and both of
+     those are the point - a title card wants gravity, not pressure. Its lower
+     case is small capitals, so display text reads as caps whether or not
+     anything uppercases it, and the tracking scale below was retuned for the
+     wider letterform.
+
+     --body is Spectral, a serif drawn for screens rather than for paper: tall
+     x-height, open counters, a real 400 that holds at 14px on a near-black
+     panel. This is the single biggest change in the interface. Serif body text
+     is the difference between a game that is telling you a story and a game
+     that is showing you a tooltip, and every line the ghost says is set in it.
+
+     --mono is Share Tech Mono, and the job is unchanged: every numeral in this
+     game is a measurement. The run clock, the dimension readout, the keypad,
+     the stability percentage. Single-width figures are why a number that counts
+     does not jitter, and this one is mechanical enough that the readouts look
+     like something is MEASURING the player rather than informing them.
+
+     Noto Serif Tamil sits second in every stack, so a Tamil string falls into a
+     face that has the conjuncts before it reaches anything system - and it is a
+     serif, so the Tamil build reads as the same game rather than as a
+     translation bolted onto it. */
+  --display: "Cinzel", "Noto Serif Tamil", Georgia, serif;
+  --mono: "Share Tech Mono", "Noto Serif Tamil", ui-monospace, monospace;
+  --body: "Spectral", "Noto Serif Tamil", Georgia, serif;
+
+  /* Tracking scale. Labels get --tr-3, the drawing-sheet subtitle --tr-4.
+     body.ta flattens all of them: Tamil conjuncts break above about .2em. */
+  --tr-1: .10em;
+  --tr-2: .16em;
+  --tr-3: .22em;
+  --tr-4: .32em;
+
+  /* ---- Radii ------------------------------------------------------------
+     Near-square on purpose: the room is a box, and so is everything that
+     describes it. --r-pill exists for exactly one control, the language
+     toggle, where a pill is the established pattern across both games. */
+  --r-1: 2px;
+  --r-2: 4px;
+  --r-3: 6px;
+  --r-pill: 999px;
+
+  /* ---- Spacing ---------------------------------------------------------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 22px;
+  --s-6: 30px;
+  --s-7: 44px;
+  /* Distance from a screen edge to an edge-anchored element, before the
+     safe-area inset is added on top of it. */
+  --edge: 20px;
+
+  /* ---- Blur -------------------------------------------------------------
+     Used sparingly. Every backdrop-filter is a full-surface readback of a
+     live 3D canvas, and two of them on screen at once is already measurable. */
+  --blur: 12px;
+  --blur-sm: 8px;
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --t-1: 120ms;
+  --t-2: 240ms;
+  --t-3: 420ms;
+  --t-4: 900ms;
+  --ease: cubic-bezier(.2, .6, .25, 1);
+  --ease-out: cubic-bezier(0, .55, .25, 1);
+  --ease-draw: cubic-bezier(.65, 0, .35, 1);
+
+  /* ---- Layers -----------------------------------------------------------
+     One place to read the whole stack, bottom to top. */
+  --z-vign: 1;
+  --z-dread: 2;
+  --z-grain: 3;
+  --z-hud: 5;
+  --z-menu: 7;
+  --z-overlay: 12;
+  --z-loading: 16;
+  --z-splash: 20;
+  --z-rotate: 26;
+  --z-debug: 28;
+  --z-err: 34;
+
+  color-scheme: dark;
+}
+
+/* The single !important in the system, declared early so nothing after it has
+   to think about whether an element is meant to be on screen. */
+[hidden] { display: none !important }
+
+
+/* ============================================================================
+   1. RESET + BASE
+============================================================================ */
+
+*, *::before, *::after { box-sizing: border-box }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--ink);
+  color: var(--fg);
+  overflow: hidden;
+  overscroll-behavior: none;
+  font: 400 16px/1.5 var(--body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, p, dl, dd, figure { margin: 0 }
+
+button {
+  font-family: var(--display);
+  color: var(--fg);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+button:disabled { cursor: not-allowed }
+
+svg { display: block }
+
+/* Focus is a signal, so it is the signal colour, and it is declared globally
+   rather than on buttons: the range inputs, the language pill and the
+   segmented controls all need it too. */
+:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: 2px;
+  border-radius: var(--r-1);
+}
+
+::selection { background: var(--sig); color: var(--sig-on) }
+
+/* The loudest identity signal in the build. Everything carrying a number gets
+   it, <output> and <kbd> included - those are numeric or key glyphs
+   everywhere they appear in this game. */
+.num, output, kbd {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: .02em;
+}
+
+/* Small tracked label. The HUD, the settings rows and the readouts all share
+   it, so a label means the same thing wherever it appears. */
+.lbl {
+  font: 500 9px/1 var(--display);
+  letter-spacing: var(--tr-3);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Section label with an accent tick - inherited from the portal and the racer
+   so all three surfaces read as one studio. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 500 10px/1 var(--display);
+  letter-spacing: var(--tr-3);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 2px;
+  background: var(--sig);
+}
+/* The first span takes the slack, so a trailing readout is pushed to the far
+   end of the line - see the menu plate's "4 x 4". */
+.eyebrow span:first-of-type { flex: 1 }
+.eyebrow .num {
+  flex: none;
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--fg);
+}
+
+.muted { color: var(--dim) }
+
+.lede {
+  color: var(--fg-2);
+  font: 400 16px/1.6 var(--body);
+  max-width: 62ch;
+}
+
+/* The only entrance in the file. Opacity only: a panel that slides is a panel
+   in a hurry, and nothing here is in a hurry. */
+@keyframes fade { from { opacity: 0 } }
+
+
+/* ============================================================================
+   2. SCENE LAYERS
+   The canvas, then four inert films over it. None of them ever takes a
+   pointer: a click anywhere on the scene has to reach the canvas, because
+   that click is what re-acquires pointer lock.
+============================================================================ */
+
+#gl {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  touch-action: none;
+}
+
+/* Film grain, from an feTurbulence tile rather than a PNG, so it costs no
+   request and resolves at any density.
+
+   Deliberately NOT animated. A jittering grain plate would be the one thing
+   in a still game that never stops moving, and it fights the whole premise -
+   so the texture holds and only the room moves. It blends with `screen`
+   rather than `overlay` because over a near-black scene an overlay blend
+   multiplies towards nothing and the grain simply vanishes. */
+#grain {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: .045;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* Vignette. Inert - the engine drives its opacity. The gradient itself is
+   swapped by the room state, so the edges of the screen bruise as stability
+   falls without the engine having to know anything about colour. */
+#vign {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-vign);
+  pointer-events: none;
+  opacity: .72;
+  background: radial-gradient(ellipse 74% 64% at 50% 50%, transparent 36%, rgba(0, 0, 0, .74) 100%);
+  transition: background 2.4s linear;
+}
+body.room-shifting #vign {
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 32%, rgba(26, 16, 2, .72) 72%, rgba(0, 0, 0, .86) 100%);
+}
+body.room-critical #vign {
+  background: radial-gradient(ellipse 62% 54% at 50% 50%, transparent 24%, rgba(38, 6, 8, .76) 66%, rgba(0, 0, 0, .92) 100%);
+}
+
+/* Dread. Also inert, also opacity-driven - this is the one the engine ramps
+   through a shrink. */
+#dread {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dread);
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse 96% 84% at 50% 54%, transparent 26%, rgba(192, 53, 60, .26) 82%, rgba(72, 8, 12, .55) 100%);
+  transition: opacity 1.2s linear;
+}
+
+/* ---- the unease breath ----------------------------------------------------
+   The only infinite animation in the game.
+
+   It lives on body::after rather than on #vign or #dread because both of
+   those have their opacity written by the engine, and a CSS animation beats
+   an inline style - switching the breath on would quietly take the vignette
+   away from the code that is ramping it. A pseudo-element nobody else touches
+   has no such conflict.
+
+   It is fully off until the room is actually moving, which is the point: the
+   player should feel the interface itself become unsure. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dread);
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse 100% 92% at 50% 50%, transparent 42%, rgba(217, 164, 65, .13) 100%);
+}
+@keyframes unease { 0%, 100% { opacity: .22 } 50% { opacity: .62 } }
+body.room-shifting::after { animation: unease 4s ease-in-out infinite }
+body.room-critical::after {
+  background: radial-gradient(ellipse 100% 92% at 50% 50%, transparent 38%, rgba(192, 53, 60, .17) 100%);
+  animation: unease 4s ease-in-out infinite;
+}
+
+
+/* ============================================================================
+   3. LANGUAGE PILL
+   The one rounded thing in the build, and the only control shared by the
+   studio card, the title screen and Settings. Selection inverts rather than
+   tinting, so it survives greyscale and colour-blindness both.
+============================================================================ */
+
+.langpill {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: rgba(5, 6, 7, .62);
+}
+.langpill button {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  font: 700 11px/1 var(--display);
+  letter-spacing: var(--tr-1);
+  color: var(--dim);
+  transition: color var(--t-2), background var(--t-2);
+}
+.langpill button:hover { color: var(--fg) }
+.langpill button[aria-pressed="true"] {
+  background: var(--fg);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px var(--fg);
+}
+
+
+/* ============================================================================
+   4. HUD
+   Four free corners over a live canvas: stability top-left, the pause button
+   pinned top-right with the dimension readout hanging under it, the objective
+   centred at the top, prompt and captions centred low.
+============================================================================ */
+
+#hud {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-hud);
+  pointer-events: none;
+  font-family: var(--display);
+}
+#hud > * { pointer-events: auto }
+/* ...but almost nothing in the HUD is clickable. Every readout, the crosshair
+   and all three message lines sit over the canvas, and anything that eats a
+   pointer there also eats the click that re-acquires pointer lock. Only the
+   pause button and the touch rig opt back in. */
+#objective, #crosshair, #prompt, #msg, #sub, #subtitle { pointer-events: none }
+/* The wrapper needs the id in the selector to outrank `#hud > *` above - a
+   bare .hud-top loses to it, and then both readouts quietly take pointers in
+   the two corners a player is most likely to click in. pointer-events is
+   inherited, so switching it off here covers .stability and .dims too, on
+   desktop through display:contents and on touch through the grid. */
+#hud .hud-top { pointer-events: none }
+
+/* A pass-through wrapper on desktop: .stability and .dims keep pinning
+   themselves to their own corners, and only the phone layout turns this into
+   a real grid - see mobile.css, where four free corners would collide on a
+   360px-tall landscape screen. */
+.hud-top { display: contents }
+
+/* ---- stability: this game's health bar ----------------------------------- */
+.stability {
+  position: absolute;
+  left: calc(env(safe-area-inset-left, 0px) + var(--edge));
+  top: calc(env(safe-area-inset-top, 0px) + 18px);
+  width: clamp(200px, 21vw, 272px);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "lbl num" "bar bar";
+  align-items: center;
+  gap: 8px 10px;
+  animation: fade var(--t-4) var(--ease) both;
+}
+.stability .lbl { grid-area: lbl }
+.stability .num {
+  grid-area: num;
+  font: 600 16px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--sig);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .9);
+  transition: color var(--t-4) linear;
+}
+/* The unit is CSS, so the engine writes a bare integer into #stabPct and the
+   percent sign can never end up doubled or translated by accident. */
+.stability .num::after {
+  content: "%";
+  margin-left: 1px;
+  font-size: .64em;
+  color: var(--dim);
+}
+
+/* Flat, not skewed. The racer skews its bars by -20deg because a leaning bar
+   reads as speed; a survey instrument does not lean. */
+.stability .bar {
+  grid-area: bar;
+  position: relative;
+  display: block;
+  height: 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-1);
+  background: rgba(222, 226, 228, .05);
+  overflow: hidden;
+}
+/* Survey ticks every 10%, drawn OVER the fill so the scale stays readable
+   wherever the fill currently ends. */
+.stability .bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(222, 226, 228, .26) calc(10% - 1px) 10%);
+}
+.stability .bar > b {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--sig);
+  box-shadow: 0 0 14px -2px var(--sig-glow);
+  /* Width is fast enough to feel caused; colour is slow, because the ramp
+     between bands should be something the player notices after the fact. */
+  transition: width 600ms var(--ease-out), background-color var(--t-4) linear, box-shadow var(--t-4) linear;
+}
+
+/* The ramp. Driven entirely by a class on <body>, so the bar, the number, the
+   vignette and the unease breath all change on the same frame. */
+body.room-steady .stability .bar > b { background: var(--sig) }
+body.room-steady .stability .num { color: var(--sig) }
+body.room-shifting .stability .bar > b {
+  background: var(--warn);
+  box-shadow: 0 0 14px -2px rgba(217, 164, 65, .45);
+}
+body.room-shifting .stability .num { color: var(--warn-ink) }
+body.room-critical .stability .bar > b {
+  background: var(--crit);
+  box-shadow: 0 0 18px -2px rgba(192, 53, 60, .6);
+}
+body.room-critical .stability .num { color: var(--crit-ink) }
+
+/* ---- dimension readout --------------------------------------------------- */
+.dims {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + var(--edge));
+  /* Sits under the pause button rather than beside it: 18 + 36 + 14. */
+  top: calc(env(safe-area-inset-top, 0px) + 68px);
+  display: grid;
+  grid-auto-flow: column;
+  align-items: end;
+  gap: 10px;
+  animation: fade var(--t-4) 120ms var(--ease) both;
+}
+.dims .d {
+  min-width: 66px;
+  padding-top: 7px;
+  border-top: 2px solid var(--line-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: right;
+  transition: border-color var(--t-3) linear;
+}
+.dims .lbl { letter-spacing: var(--tr-2) }
+.dims .num {
+  font: 600 clamp(16px, 1.5vw, 20px)/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .9);
+  transition: color var(--t-3) linear;
+}
+/* One unit stamp for the whole block, not three. Three "m"s is noise; one is
+   an instrument. It is a grid item, so it lands after the H cell. */
+.dims::after {
+  content: "m";
+  align-self: end;
+  padding-bottom: 1px;
+  font: 400 11px/1 var(--mono);
+  color: var(--dim);
+}
+
+/* The axis that just moved. A one-shot wash, not a loop - it says "this
+   number is new", then gets out of the way. */
+@keyframes axisWash { from { background: var(--sig-wash-2) } to { background: transparent } }
+@keyframes axisWashBad { from { background: var(--crit-wash) } to { background: transparent } }
+.dims .d.grew { border-top-color: var(--sig); animation: axisWash 1.6s var(--ease) both }
+.dims .d.grew .num { color: var(--sig) }
+.dims .d.shrank { border-top-color: var(--crit); animation: axisWashBad 1.6s var(--ease) both }
+.dims .d.shrank .num { color: var(--crit-ink) }
+
+/* ---- objective ----------------------------------------------------------- */
+/* Hidden by :empty rather than by a class, so a line the engine has not
+   written yet cannot be left stranded invisible by a missing class call. */
+.objective {
+  position: absolute;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 20px);
+  transform: translateX(-50%);
+  max-width: min(46ch, 52vw);
+  text-align: center;
+  font: 400 14px/1.5 var(--body);
+  color: var(--fg-2);
+  letter-spacing: .01em;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, .95);
+  transition: opacity var(--t-3) var(--ease);
+}
+
+/* ---- crosshair ----------------------------------------------------------- */
+#crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  opacity: .55;
+  transition: opacity var(--t-2) var(--ease);
+}
+#crosshair i {
+  width: 3px;
+  height: 3px;
+  background: var(--fg);
+  box-shadow: 0 0 6px rgba(0, 0, 0, .95);
+  transition: background var(--t-2) var(--ease);
+}
+/* A square, not a ring. Opens when something under the reticle can be used. */
+#crosshair::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--sig);
+  opacity: 0;
+  transform: scale(.55);
+  transition: opacity var(--t-2) var(--ease), transform var(--t-2) var(--ease);
+}
+#crosshair.hot { opacity: 1 }
+#crosshair.hot::before { opacity: .9; transform: scale(1) }
+#crosshair.hot i { background: var(--sig) }
+
+/* ---- interaction prompt -------------------------------------------------- */
+/* Has to be legible over bare concrete, over a lamp and over a white sheet of
+   paper, so it carries its own near-opaque plate and a blur behind it rather
+   than relying on a text-shadow. */
+#prompt {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 15vh);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  white-space: nowrap;
+  padding: 9px 15px 9px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: rgba(5, 6, 7, .70);
+  backdrop-filter: blur(var(--blur-sm));
+  -webkit-backdrop-filter: blur(var(--blur-sm));
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .65);
+  animation: fade var(--t-2) var(--ease) both;
+}
+kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border: 1px solid var(--line-ui);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(222, 226, 228, .13), rgba(222, 226, 228, .05));
+  font: 600 12px/1 var(--mono);
+  color: var(--fg);
+}
+#promptVerb {
+  font: 500 11px/1 var(--display);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+#promptName { font: 400 15px/1 var(--body); letter-spacing: .01em; color: var(--fg) }
+
+/* ---- message lines -------------------------------------------------------
+   #msg is the beat, #sub the stamp under it, #subtitle the spoken caption at
+   the foot of the screen. All three hide when empty; `.out` is the optional
+   handle for fading one away before its text is cleared. */
+#msg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 28%;
+  padding: 0 var(--s-5);
+  text-align: center;
+  font: 700 clamp(26px, 4.6vw, 54px)/1.08 var(--display);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, .9);
+  transition: opacity var(--t-3) var(--ease);
+}
+#msg.small { font-size: clamp(18px, 2.4vw, 28px); letter-spacing: var(--tr-1) }
+#msg.warn { color: var(--warn-ink) }
+#msg.crit { color: var(--crit-ink) }
+#sub {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(28% + clamp(46px, 6vw, 80px));
+  padding: 0 var(--s-5);
+  text-align: center;
+  font: 400 12px/1 var(--mono);
+  letter-spacing: var(--tr-3);
+  text-transform: uppercase;
+  color: var(--sig);
+  transition: opacity var(--t-3) var(--ease);
+}
+body.room-shifting #sub { color: var(--warn-ink) }
+body.room-critical #sub { color: var(--crit-ink) }
+#subtitle {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 34px);
+  transform: translateX(-50%);
+  max-width: min(54ch, 76vw);
+  padding: 9px 16px;
+  border-radius: var(--r-1);
+  border-left: 2px solid var(--line-strong);
+  background: rgba(5, 6, 7, .66);
+  text-align: left;
+  font: 400 16px/1.5 var(--body);
+  color: var(--fg);
+  text-wrap: pretty;
+  transition: opacity var(--t-3) var(--ease);
+}
+#objective:empty, #msg:empty, #sub:empty, #subtitle:empty,
+#objective.out, #msg.out, #sub.out, #subtitle.out { opacity: 0 }
+
+/* ---- pause --------------------------------------------------------------- */
+#btnPause {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + var(--edge));
+  top: calc(env(safe-area-inset-top, 0px) + 18px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: rgba(5, 6, 7, .55);
+  color: var(--fg-2);
+  transition: border-color var(--t-2), color var(--t-2), background var(--t-2);
+}
+#btnPause svg { width: 15px; height: 15px }
+#btnPause:hover { border-color: var(--line-ui); color: var(--fg); background: rgba(222, 226, 228, .06) }
+
+/* ---- touch rig: layering only --------------------------------------------
+   The rig itself is designed in mobile.css, because the phone is its own
+   design rather than a shrunken desktop. What has to live here is the
+   layering: without it a desktop build that never loads the phone sheet still
+   has a full-screen div sitting over the canvas eating pointer-lock clicks.
+   It also has to lose to #btnPause, which it follows in the DOM. */
+#touch { position: absolute; inset: 0; z-index: 1; pointer-events: none }
+#touch .zone, #touch .stick, #touch .acts { pointer-events: none }
+
+
+/* ============================================================================
+   5. OVERLAYS
+   Pause, settings, how-to, game over. One card recipe, four contents.
+============================================================================ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + var(--edge))
+    calc(env(safe-area-inset-right, 0px) + var(--edge))
+    calc(env(safe-area-inset-bottom, 0px) + var(--edge))
+    calc(env(safe-area-inset-left, 0px) + var(--edge));
+  background: rgba(4, 5, 6, .78);
+  backdrop-filter: blur(var(--blur)) saturate(.85);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(.85);
+  animation: fade 300ms var(--ease) both;
+}
+
+.card {
+  position: relative;
+  width: min(540px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: var(--s-6) var(--s-6) var(--s-5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-3);
+  /* The same accent tick as .eyebrow, but printed on the sheet instead of set
+     in the text - it says which kind of card this is before a word is read.
+     Drawn as a background layer rather than as a ::before, because the card
+     is a scroll container: an absolutely positioned pseudo-element inside one
+     is clipped at the padding box and then scrolls away with the content. A
+     background does neither. */
+  background-color: var(--panel-solid);
+  background-image: linear-gradient(var(--sig) 0 0);
+  background-repeat: no-repeat;
+  background-size: 48px 2px;
+  background-position: 0 0;
+  box-shadow: 0 48px 130px rgba(0, 0, 0, .72), inset 0 1px 0 rgba(222, 226, 228, .05);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  animation: fade 520ms 60ms var(--ease) both;
+}
+.card.wide { width: min(880px, 100%) }
+.card::-webkit-scrollbar { width: 8px }
+.card::-webkit-scrollbar-track { background: transparent }
+.card::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px }
+
+#gameover .card { background-image: linear-gradient(var(--crit) 0 0) }
+#gameover .eyebrow::before { background: var(--crit) }
+
+/* Sentence case, not uppercase. These are lines of prose, and the uppercase
+   display headings next door turn "The room has no more space for you" into
+   a shout. The room does not shout. */
+.card h2 {
+  margin: 10px 0 12px;
+  font: 700 clamp(21px, 2.5vw, 29px)/1.18 var(--display);
+  letter-spacing: .005em;
+  text-wrap: balance;
+}
+.card p { color: var(--dim) }
+.card .lede { margin-bottom: var(--s-4) }
+
+/* Hairline-separated cells, drawn with a 1px grid gap over a line-coloured
+   backing rather than with eight border declarations that never quite align. */
+.readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 1px;
+  margin-top: var(--s-5);
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+.readout > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px 14px;
+  background: var(--panel-solid);
+}
+.readout dt {
+  font: 500 9px/1 var(--display);
+  letter-spacing: var(--tr-3);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.readout dd {
+  font: 600 19px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+#gameover .readout dd { color: var(--crit-ink) }
+
+.btns { display: flex; gap: var(--s-2); flex-wrap: wrap; margin-top: var(--s-6) }
+.btns button {
+  flex: 1 1 150px;
+  min-height: 48px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: rgba(222, 226, 228, .03);
+  font: 700 12px/1 var(--display);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  color: var(--fg-2);
+  transition: border-color var(--t-2), color var(--t-2), background var(--t-2);
+}
+.btns button:hover { border-color: var(--line-ui); color: var(--fg); background: rgba(222, 226, 228, .07) }
+.btns button.pri {
+  border-color: var(--sig);
+  background: var(--sig-wash);
+  color: var(--fg);
+}
+.btns button.pri:hover { background: var(--sig-wash-2); box-shadow: 0 0 0 1px var(--sig-glow) }
+
+/* ---- settings ------------------------------------------------------------ */
+.setgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--s-6);
+  margin-top: var(--s-5);
+}
+.sec h3 {
+  margin-bottom: var(--s-3);
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+  font: 500 10px/1 var(--display);
+  letter-spacing: var(--tr-3);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+/* Flex rather than grid: a row is either label + segment or label + slider +
+   readout, and a fixed three-column grid starves whichever of the two it was
+   not measured for. */
+.row { display: flex; align-items: center; gap: var(--s-3); min-height: 42px }
+.row > .lbl { flex: 0 0 auto; min-width: 86px; letter-spacing: var(--tr-2) }
+.row > .seg { flex: 1 1 auto; min-width: 0 }
+.row > input[type="range"] { flex: 1 1 auto; min-width: 0 }
+.row > output { flex: 0 0 44px; text-align: right; font: 600 13px/1 var(--mono); color: var(--fg) }
+/* The markup ships this row with [hidden] and the engine clears it on a
+   coarse pointer. Belt and braces: it is also display:none here and only
+   turned back on under body.touch in mobile.css, so a stray unhide on a
+   desktop build cannot put a crouch-mode toggle in front of a keyboard. */
+.row.touchonly { display: none }
+
+/* Segmented control. Selection is never colour alone: the cell inverts AND
+   takes a signal keyline, so it survives greyscale, a bad panel and
+   colour-blindness. aria-pressed / aria-selected are the only hooks - there
+   is no .active class anywhere in this build. */
+.seg { display: flex; gap: 4px }
+.seg button {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: rgba(222, 226, 228, .03);
+  font: 700 11px/1 var(--display);
+  letter-spacing: var(--tr-1);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color var(--t-2), color var(--t-2), background var(--t-2);
+}
+.seg button:hover { border-color: var(--line-ui); color: var(--fg) }
+.seg button[aria-pressed="true"],
+.seg button[aria-selected="true"] {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--ink);
+}
+.seg button[aria-pressed="true"]::after,
+.seg button[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--sig);
+}
+
+/* Range input. A rectangular handle on a 2px rule: a slider on a drawing is a
+   cursor on a scale, not a bead on a wire. Declared for both engines, because
+   WebKit and Gecko share none of these pseudo-elements. */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--line-strong);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 18px;
+  margin-top: -8px;
+  border: 0;
+  border-radius: 1px;
+  background: var(--fg);
+  box-shadow: 0 0 0 1px var(--ink), 0 2px 10px rgba(0, 0, 0, .7);
+  transition: background var(--t-1);
+}
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:active::-webkit-slider-thumb { background: var(--sig) }
+input[type="range"]::-moz-range-track { height: 2px; background: var(--line-strong); border: 0 }
+input[type="range"]::-moz-range-progress { height: 2px; background: var(--sig) }
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 18px;
+  border: 0;
+  border-radius: 1px;
+  background: var(--fg);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+input[type="range"]:hover::-moz-range-thumb { background: var(--sig) }
+input[type="range"]:focus-visible { outline-offset: 4px }
+
+/* ---- keyboard reference --------------------------------------------------
+   Built by the engine. Each cell is expected to be a <span> holding one or
+   more <kbd> and a trailing <em> with the action it performs. */
+.kgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0 var(--s-6);
+  margin-top: var(--s-5);
+}
+.kgrid span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.kgrid em {
+  margin-left: auto;
+  padding-left: var(--s-3);
+  font: 400 14px/1.2 var(--body);
+  font-style: normal;
+  color: var(--fg-2);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ============================================================================
+   6. LOADING
+   The floor plan draws itself. It is the best motif the game has: a room that
+   is about to exist, being surveyed one wall at a time, and it reads as a
+   drawing being made rather than as a spinner being spun.
+============================================================================ */
+
+#loading {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-loading);
+  display: grid;
+  place-items: center;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + var(--s-5))
+    calc(env(safe-area-inset-right, 0px) + var(--s-5))
+    calc(env(safe-area-inset-bottom, 0px) + var(--s-5))
+    calc(env(safe-area-inset-left, 0px) + var(--s-5));
+  background: var(--ink);
+}
+#loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, rgba(222, 226, 228, .04) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(0deg, rgba(222, 226, 228, .04) 0 1px, transparent 1px 72px);
+  -webkit-mask: radial-gradient(ellipse 66% 58% at 50% 50%, #000 0%, transparent 76%);
+  mask: radial-gradient(ellipse 66% 58% at 50% 50%, #000 0%, transparent 76%);
+}
+
+.ld-center {
+  position: relative;
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.ld-eyebrow {
+  font: 500 10px/1 var(--display);
+  letter-spacing: var(--tr-3);
+  text-transform: uppercase;
+  color: var(--sig);
+  animation: fade var(--t-4) var(--ease) both;
+}
+.ld-name {
+  margin-top: var(--s-3);
+  font: 700 clamp(26px, 4.4vw, 44px)/1.05 var(--display);
+  letter-spacing: .01em;
+  animation: fade var(--t-4) 140ms var(--ease) both;
+}
+
+/* Graph paper behind the plan, drawn as a background on the <svg> itself so
+   the markup stays a single <rect>. Ten columns by seven rows matches the
+   200x140 viewBox, so the grid lines land on whole viewBox units. */
+.ld-plan {
+  width: min(280px, 72%);
+  height: auto;
+  margin: var(--s-6) 0 var(--s-5);
+  overflow: visible;
+  background:
+    repeating-linear-gradient(90deg, rgba(222, 226, 228, .055) 0 1px, transparent 1px 10%),
+    repeating-linear-gradient(0deg, rgba(222, 226, 228, .055) 0 1px, transparent 1px 14.2857%);
+  animation: fade var(--t-4) 260ms var(--ease) both;
+}
+/* 160 + 100 + 160 + 100 = 520 user units of perimeter, so the dash array is
+   exact and the stroke arrives at the corner it started from. The fill comes
+   in afterwards as a second animation: the room is drawn, then it is a room.
+   Note fill starts as a transparent colour rather than `none`, because
+   `none` is not interpolatable and the fill animation would simply snap. */
+.ld-plan.draw .plan {
+  fill: rgba(111, 224, 189, 0);
+  stroke: var(--sig);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 520;
+  stroke-dashoffset: 520;
+  filter: drop-shadow(0 0 7px rgba(111, 224, 189, .35));
+  animation:
+    planDraw 2.4s 300ms var(--ease-draw) forwards,
+    planFill 900ms 2.6s ease-out forwards;
+}
+@keyframes planDraw { to { stroke-dashoffset: 0 } }
+@keyframes planFill { to { fill: rgba(111, 224, 189, .07) } }
+
+.ld-bar {
+  position: relative;
+  width: min(360px, 90%);
+  height: 2px;
+  background: rgba(222, 226, 228, .10);
+}
+.ld-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 5px;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px 10%);
+}
+.ld-bar > i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--sig);
+  box-shadow: 0 0 12px -2px var(--sig-glow);
+  transition: width var(--t-3) var(--ease-out);
+}
+.ld-step {
+  margin-top: 18px;
+  min-height: 11px;
+  font: 400 10px/1 var(--mono);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+
+/* ============================================================================
+   7. HARD INTERRUPTIONS
+============================================================================ */
+
+/* Shown and hidden by the [hidden] attribute, so the base state is the shown
+   one. The icon is drawn already turned rather than animated into position:
+   an arrow that rotates forever is one more thing moving on a screen whose
+   whole argument is that nothing moves. */
+#rotate {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-rotate);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  padding:
+    calc(env(safe-area-inset-top, 0px) + var(--s-6))
+    calc(env(safe-area-inset-right, 0px) + var(--s-6))
+    calc(env(safe-area-inset-bottom, 0px) + var(--s-6))
+    calc(env(safe-area-inset-left, 0px) + var(--s-6));
+  text-align: center;
+  background: var(--ink);
+}
+#rotate svg {
+  width: 58px;
+  height: 58px;
+  color: var(--cold-ink);
+  transform: rotate(-90deg);
+}
+#rotate p { font: 700 18px/1.3 var(--display); letter-spacing: var(--tr-1); text-transform: uppercase }
+#rotate p.muted {
+  font: 400 15px/1.5 var(--body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--dim);
+}
+
+#err {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-err);
+  display: grid;
+  place-items: center;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + var(--edge))
+    calc(env(safe-area-inset-right, 0px) + var(--edge))
+    calc(env(safe-area-inset-bottom, 0px) + var(--edge))
+    calc(env(safe-area-inset-left, 0px) + var(--edge));
+  background: rgba(4, 5, 6, .93);
+}
+.err-card {
+  width: min(520px, 100%);
+  padding: var(--s-6) var(--s-5);
+  border: 1px solid rgba(192, 53, 60, .45);
+  border-left: 3px solid var(--crit);
+  border-radius: var(--r-3);
+  background: #110a0b;
+  box-shadow: 0 40px 110px rgba(0, 0, 0, .75);
+}
+.err-card h2 { font: 700 21px/1.25 var(--display); color: var(--fg) }
+.err-card p {
+  margin: var(--s-3) 0 var(--s-5);
+  font: 400 15px/1.6 var(--body);
+  color: var(--fg-2);
+}
+.err-card button {
+  min-height: 46px;
+  padding: 0 var(--s-5);
+  border: 1px solid var(--crit);
+  border-radius: var(--r-2);
+  background: var(--crit-wash);
+  font: 700 12px/1 var(--display);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  transition: background var(--t-2);
+}
+.err-card button:hover { background: rgba(192, 53, 60, .26) }
+
+/* Steel, because nothing in here means anything to a player. */
+#debug {
+  position: fixed;
+  left: calc(env(safe-area-inset-left, 0px) + 10px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  z-index: var(--z-debug);
+  max-width: min(380px, 46vw);
+  max-height: 42vh;
+  overflow: auto;
+  pointer-events: none;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: rgba(5, 6, 7, .82);
+  font: 400 11px/1.55 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--cold-ink);
+  white-space: pre-wrap;
+}
+
+
+/* ============================================================================
+   8. TAMIL
+   ----------------------------------------------------------------------------
+   Tamil conjuncts come apart above roughly .2em of tracking - the vowel signs
+   detach from the consonant they belong to and the word stops being a word.
+   Everything in this build that is tracked is therefore flattened here.
+
+   One rule rather than a list of twenty, and the :is() carries an id so the
+   whole selector resolves at (1,1,1). That beats every tracked rule in this
+   file, including the id-scoped ones such as #msg.small, without a single
+   !important and without having to restate each selector in order.
+
+   Noto Serif Tamil is already second in --display, --mono and --body, so the
+   face itself needs no switching here.
+============================================================================ */
+
+body.ta :is(
+  #msg, #sub, #stGo, #promptVerb, #promptName, #objective, #subtitle, #rotate p, #debug,
+  .num, output, kbd, .lbl, .eyebrow, .eyebrow .num,
+  .langpill button,
+  .card h2, .lede, .readout dt, .readout dd, .btns button,
+  .sec h3, .seg button, .kgrid em,
+  .ld-eyebrow, .ld-name, .ld-step, .err-card h2, .err-card button,
+  .st-presents, .st-step, .ti-sub, .ti-btn, .ti-foot, .ti-save,
+  .ng-ask, .ng-input, .ng-go, .ng-note,
+  .cn-text, .cn-who, .cn-card-sub, .cn-skip
+) { letter-spacing: 0 }
+
+/* Tamil needs more leading than Latin at the same size: the vowel signs sit
+   above and below the base line, and tight prose turns into a solid block. */
+body.ta :is(.lede, #subtitle, #objective, .err-card p, .cn-text, .ti-sub) { line-height: 1.8 }
+
+/* Uppercase does nothing in Tamil but it does cost the layout engine work,
+   and it makes the strings look accidentally shouted next to Latin. */
+body.ta :is(.st-step, .ld-step, .ti-foot, .ng-note, .cn-skip) { text-transform: none }
+
+
+/* ============================================================================
+   9. DESKTOP BREAKPOINTS
+   Narrow and short windows, still with a mouse. The phone is mobile.css.
+============================================================================ */
+
+/* A short window is the common case for a game in a browser tab with devtools
+   open. The menu plate loses its breathing room before it loses content. */
+@media (max-width: 1080px) {
+  .stability { width: clamp(176px, 24vw, 230px) }
+  .dims .d { min-width: 58px }
+}
+
+@media (max-width: 820px) {
+  #objective { max-width: min(40ch, 70vw) }
+  #subtitle { max-width: 84vw; font-size: 15px }
+}
+
+
+/* ============================================================================
+   10. REDUCED MOTION
+   One blanket rule, not a list of selectors - a list is a maintenance trap
+   that silently stops covering whatever was added last. Everything that
+   animates in this file is an entrance to a final state the element already
+   has, so switching the animations off leaves the interface correct rather
+   than half-built. The two exceptions below are the ones where the animation
+   WAS the final state.
+============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: .001ms !important;
+  }
+
+  /* The floor plan is drawn by its animation. Without it the rect would sit
+     at a full 520-unit dash offset, which is an invisible room. */
+  .ld-plan .plan { stroke-dashoffset: 0; fill: rgba(111, 224, 189, .07) }
+
+  /* Grain is static here, but a fine high-frequency texture over a whole
+     screen is exactly the kind of visual noise this preference is asking to
+     be spared, so it goes entirely. */
+  #grain { display: none }
+}
+
+/* ==========================================================================
+   STAGES
+   The stage count and the per-stage instructions. The brief is that a player
+   should be able to see, at a glance, how many stages the game has and
+   exactly how to finish the one they are standing in - so this appears in
+   three places that all read from js/world/stages.js: a HUD counter, a line
+   on the main menu, and the full list behind Settings.
+   ========================================================================== */
+
+/* ---- HUD counter --------------------------------------------------------
+   Sits between the stability meter and the dimensions, sharing their top
+   keyline so the three readouts scan as one instrument strip. */
+/* Top LEFT, directly under the stability meter - not top centre, where it
+   collided with the objective line. The two left-hand readouts now stack as
+   one block: how stable the room is, and which stage you are in. */
+.stagebox {
+  position: absolute;
+  left: calc(env(safe-area-inset-left, 0px) + var(--edge));
+  top: calc(env(safe-area-inset-top, 0px) + 74px);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  pointer-events: none;
+}
+
+.stagebox .lbl {
+  font: 500 9px/1 var(--display);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.stagebox .num {
+  font: 600 13px/1.1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .8);
+}
+
+/* ---- the run timer ------------------------------------------------------
+   Under the stage counter on the left, laid out exactly like it, because they
+   are the same kind of thing: two small facts about the run that the player
+   cannot work out by looking at the room.
+
+   NOT top right. That corner belongs to the pause button and the dimension
+   readout, and the first attempt put the clock behind the pause button where
+   half of it was unreadable.
+
+   Tabular figures matter more here than anywhere else in the interface: a
+   clock whose digits change width ticks sideways once a second. */
+.playclock {
+  position: absolute;
+  left: calc(env(safe-area-inset-left, 0px) + var(--edge));
+  top: calc(env(safe-area-inset-top, 0px) + 102px);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  pointer-events: none;
+}
+.playclock .lbl {
+  font: 500 9px/1 var(--display);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.playclock .num {
+  font: 600 13px/1.1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .8);
+}
+
+/* ---- the count badge on a button ---------------------------------------- */
+.btns button .count,
+.ti-btn .count {
+  font: 600 10px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-style: normal;
+  color: var(--sig);
+  background: var(--sig-wash);
+  border: 1px solid var(--sig-wash-2);
+  border-radius: var(--r-1);
+  padding: 2px 5px;
+  margin-left: 2px;
+}
+
+/* ---- the list ------------------------------------------------------------
+   Each row is a small specification sheet: number, name, size, build status,
+   then the goal and the steps. The number column is mono and fixed-width so
+   the rows align into a column the eye can run down. */
+.stagelist {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.stagerow {
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: rgba(255, 255, 255, .012);
+  padding: var(--s-3) var(--s-4);
+}
+
+/* The one stage that is actually finished is marked on the edge, not with a
+   colour wash: a full-row tint would make the other eight read as disabled,
+   and they are not - they are just not built yet. */
+.stagerow[data-status="playable"] {
+  border-left-color: var(--sig);
+  background: var(--sig-wash);
+}
+
+.stagehead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+
+.stageno {
+  font: 600 15px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+  flex: none;
+  width: 2.2em;
+}
+
+.stagerow[data-status="playable"] .stageno { color: var(--sig); }
+
+.stagetitle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.stagetitle b {
+  font: 700 14px/1.2 var(--display);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.stagetitle em {
+  font: 400 12px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-style: normal;
+  color: var(--cold-ink);
+}
+
+.stagebadge {
+  flex: none;
+  font: 500 9px/1 var(--display);
+  letter-spacing: var(--tr-1);
+  text-transform: uppercase;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  padding: 4px 7px;
+}
+
+.stagerow[data-status="playable"] .stagebadge {
+  color: var(--sig);
+  border-color: var(--sig-wash-2);
+}
+
+.stagegoal {
+  margin: var(--s-2) 0 0;
+  font: 500 13.5px/1.5 var(--body);
+  color: var(--fg-2);
+}
+
+.stagelabel {
+  margin: var(--s-3) 0 var(--s-1);
+  font: 500 9px/1 var(--display);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Steps are numbered because they are ordered: the book has to be read
+   before the clock means anything. */
+.stagesteps {
+  margin: 0;
+  padding-left: 1.35em;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stagesteps li {
+  font: 400 13px/1.5 var(--body);
+  color: var(--fg-2);
+}
+
+.stagesteps li::marker {
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.stagereward {
+  margin: var(--s-3) 0 0;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
+  font: 500 12px/1.4 var(--body);
+  color: var(--dim);
+}
+
+/* Tamil conjuncts break apart above about .2em of tracking. */
+body.ta .stagebox .lbl,
+body.ta .stagebadge,
+body.ta .stagelabel,
+body.ta .stagetitle b { letter-spacing: 0; }
+
+/* ---- states the HUD script drives that had no rule ------------------------
+   hud.js has always toggled these three; they were simply never defined, so
+   the stability meter did not flinch when it was hit and the crosshair
+   setting did nothing. Found by auditing every class the script writes
+   against every selector the stylesheet defines. */
+
+/* A hit on the stability meter: the bar flares and settles. */
+.stability .bar.hit { animation: stabHit 520ms var(--ease) both }
+@keyframes stabHit {
+  0%   { box-shadow: 0 0 0 0 var(--sig-glow) }
+  18%  { box-shadow: 0 0 0 3px var(--sig-glow) }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) }
+}
+body.room-shifting .stability .bar.hit { animation-name: stabHitWarn }
+@keyframes stabHitWarn {
+  0%   { box-shadow: 0 0 0 0 var(--warn-wash) }
+  18%  { box-shadow: 0 0 0 3px var(--warn-wash) }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) }
+}
+body.room-critical .stability .bar.hit { animation-name: stabHitCrit }
+@keyframes stabHitCrit {
+  0%   { box-shadow: 0 0 0 0 var(--crit-wash) }
+  18%  { box-shadow: 0 0 0 4px var(--crit-wash) }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) }
+}
+
+/* The crosshair setting in Settings -> Display. */
+body.no-crosshair #crosshair { display: none }
+
+/* ==========================================================================
+   HINTS
+   A player must be able to finish a stage from inside the game. The hint
+   sits above the subtitle so an incidental line of flavour text cannot wipe
+   the thing the player deliberately asked for, and it is wider and calmer
+   than a subtitle because it is meant to be read, not glimpsed.
+   ========================================================================== */
+
+#hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 104px);
+  transform: translateX(-50%);
+  width: min(62ch, 70vw);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px 18px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--sig-wash-2);
+  border-left: 2px solid var(--sig);
+  background: rgba(5, 6, 7, .80);
+  backdrop-filter: blur(var(--blur-sm));
+  -webkit-backdrop-filter: blur(var(--blur-sm));
+  box-shadow: 0 16px 44px rgba(0, 0, 0, .6);
+  pointer-events: none;
+  transition: opacity var(--t-3) var(--ease);
+}
+
+.hint-tier {
+  font: 500 9px/1 var(--display);
+  letter-spacing: var(--tr-2);
+  text-transform: uppercase;
+  color: var(--sig);
+}
+
+.hint-text {
+  margin: 0;
+  font: 400 15px/1.55 var(--body);
+  color: var(--fg);
+  text-wrap: pretty;
+}
+
+/* Hidden by :empty on its text, like every other transient line, so a hint
+   the engine forgets to clear cannot be left stranded on screen. */
+#hint:has(.hint-text:empty),
+#hint.out { opacity: 0 }
+
+/* ---- the "press H" affordance -------------------------------------------
+   Deliberately almost invisible. It is there to be noticed once and then
+   ignored; a help prompt that competes for attention is a help prompt that
+   tells the player you expect them to fail. */
+#hintHint {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + var(--edge));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--edge));
+  margin: 0;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  font: 500 10px/1 var(--display);
+  letter-spacing: var(--tr-1);
+  text-transform: uppercase;
+  color: var(--dim);
+  opacity: .5;
+  pointer-events: none;
+  transition: opacity var(--t-2) var(--ease);
+}
+#hintHint.on { display: flex }
+#hintHint kbd { min-width: 20px; height: 20px; font-size: 10px }
+
+body.ta .hint-tier,
+body.ta #hintHint { letter-spacing: 0 }

@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WITHROOM</title>
+<meta name="description" content="A horror mystery puzzle experience. You wake in a room you did not walk into, your wife is gone, and something in the dark wants you to solve its doors.">
+<meta name="theme-color" content="#030405">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WITHROOM">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="assets/icons/favicon.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+<!-- The phone layout is its own design, not a stack of overrides on the
+     desktop one. It loads second and applies only under body.touch /
+     body.phone, so plain specificity wins and nothing needs !important. -->
+<link rel="stylesheet" href="css/mobile.css">
+<!-- The cinematic layer: studio card, title screen, name gate, letterbox,
+     subtitles and title cards. Loads last because it is the only sheet that
+     ever covers the whole screen, and the stacking order it relies on is its
+     own - see the z-index table at the top of the file. -->
+<link rel="stylesheet" href="css/cinema.css">
+</head>
+<body>
+
+<!-- ======================================================= THE WORLD === -->
+<canvas id="gl"></canvas>
+
+
+<!-- ================================================= STUDIO / LOADING ===
+     The first thing anybody sees. It is the boot screen and the studio card
+     at once: the progress bar is deliberately small and low, because this is
+     meant to read as a title sequence that happens to be loading rather than
+     as a loading screen with a logo on it. -->
+<div id="studio">
+  <!-- Two drifting smoke plates and a flickering key light. Pure CSS: this
+       runs before the renderer exists, so nothing here may touch WebGL. -->
+  <div class="st-smoke" aria-hidden="true"><i></i><i></i></div>
+  <div class="st-flicker" aria-hidden="true"></div>
+
+  <div class="st-center">
+    <p class="st-studio">CODELOVE GAMES</p>
+    <p class="st-presents" data-i18n="presents">PRESENTS</p>
+  </div>
+
+  <div class="st-foot">
+    <div class="st-bar"><i id="stBar"></i></div>
+    <p class="st-step" id="stStep">Measuring the room</p>
+    <button id="stGo" hidden data-i18n="spGo" data-i18n-touch="spGoTouch">Click or press any key to begin</button>
+  </div>
+
+  <div class="langpill st-lang" role="group" aria-label="Language">
+    <button data-lang="en">EN</button><button data-lang="ta">தமிழ்</button>
+  </div>
+</div>
+
+
+<!-- ================================================== SCENE OVERLAYS === -->
+<div id="grain" aria-hidden="true"></div>
+<div id="vign" aria-hidden="true"></div>
+<div id="dread" aria-hidden="true"></div>
+
+
+<!-- ====================================================== TITLE SCREEN ===
+     The main menu. It plays over the live, drifting view of the room, so the
+     fog and the shadow plates below are layered OVER the canvas and under the
+     type - the title is not sitting on a picture of a room, it is sitting in
+     one. -->
+<div id="title" hidden>
+  <!-- A scrim down the left only, so the cast on the right stays in the dark
+       they are standing in and the menu stays readable over it. -->
+  <div class="ti-scrim" aria-hidden="true"></div>
+  <div class="ti-fog" aria-hidden="true"><i></i><i></i><i></i></div>
+
+  <div class="ti-col">
+    <h1 class="ti-logo"><span>WITHROOM</span></h1>
+    <p class="ti-sub" data-i18n="titleSub">A Horror Mystery Puzzle Experience</p>
+
+    <nav class="ti-menu">
+      <button id="tiPlay" class="ti-btn ti-primary" data-i18n="playGame">PLAY GAME</button>
+      <button id="tiContinue" class="ti-btn" hidden>
+        <span data-i18n="continue">Continue</span><em class="ti-save" id="tiSave"></em>
+      </button>
+      <button id="tiSettings" class="ti-btn" data-i18n="settingsBtn">SETTINGS</button>
+      <button id="tiStages" class="ti-btn"><span data-i18n="stagesTitle">Stages</span><em class="count" id="stageCount">9</em></button>
+      <button id="tiHow" class="ti-btn ti-small" data-i18n="howToPlay">How to play</button>
+      <button id="tiExit" class="ti-btn ti-quiet" data-i18n="exitGame">EXIT</button>
+    </nav>
+
+    <!-- Where the player is, bottom left, the way the reference puts a rank
+         there: one line that means something rather than a decoration. -->
+    <div class="ti-progress">
+      <span class="ti-progress-lbl" data-i18n="chapterLbl">Chapter one</span>
+      <i class="ti-progress-bar"><b id="tiProgressFill"></b></i>
+      <em class="ti-progress-num num" id="tiProgressNum">0 / 9</em>
+    </div>
+  </div>
+
+  <div class="langpill ti-lang" role="group" aria-label="Language">
+    <button data-lang="en">EN</button><button data-lang="ta">தமிழ்</button>
+  </div>
+
+  <p class="ti-foot" data-i18n="titleFoot" data-i18n-touch="titleFootTouch">Headphones on. Lights off. It is better that way.</p>
+</div>
+
+
+<!-- ========================================================= NAME GATE ===
+     A form, not a div with a button: Enter must submit it, and on a phone the
+     keyboard must show a "go" key. Both of those are free with a real form
+     and have to be re-implemented by hand without one. -->
+<div id="namegate" hidden>
+  <form id="nameForm" class="ng-card" autocomplete="off">
+    <p class="ng-ask" data-i18n="nameAsk">What should we call you?</p>
+    <input id="nameInput" class="ng-input" type="text" name="playername"
+           maxlength="18" autocomplete="off" autocapitalize="words"
+           spellcheck="false" enterkeyhint="go"
+           data-i18n-placeholder="namePlaceholder" placeholder="Enter your name">
+    <button type="submit" id="nameGo" class="ng-go" data-i18n="continueBtn">CONTINUE</button>
+    <p class="ng-note" data-i18n="nameNote">It will hear you say it.</p>
+  </form>
+</div>
+
+
+<!-- ============================================================= HUD === -->
+<div id="hud" hidden>
+  <!-- display:contents on desktop so .stability and .dims keep their own
+       corners; a real grid on touch, where four free corners collide. -->
+  <div class="hud-top">
+    <div class="stability">
+      <span class="lbl" data-i18n="stabilityLbl">Room stability</span>
+      <i class="bar"><b id="stabFill"></b></i>
+      <span class="num" id="stabPct">100</span>
+    </div>
+
+    <div class="stagebox">
+      <span class="lbl" data-i18n="stagesTitle">Stages</span>
+      <b class="num" id="stageNow">1 / 9</b>
+    </div>
+
+    <!-- How long this run has taken. Counts through the cutscenes and stops
+         on pause; see js/state/playclock.js. -->
+    <div class="playclock">
+      <span class="lbl" data-i18n="timeLbl">Time</span>
+      <b class="num" id="playTime">00:00:00</b>
+    </div>
+
+    <div class="dims" id="dims">
+      <div class="d"><span class="lbl">W</span><b class="num" id="dimW">4.00</b></div>
+      <div class="d"><span class="lbl">D</span><b class="num" id="dimD">4.00</b></div>
+      <div class="d"><span class="lbl">H</span><b class="num" id="dimH">2.50</b></div>
+    </div>
+  </div>
+
+  <p id="objective" class="objective"></p>
+
+  <div id="crosshair" aria-hidden="true"><i></i></div>
+
+  <!-- Interaction prompt. The key glyph is swapped for a tap icon on touch. -->
+  <div id="prompt" hidden>
+    <kbd id="promptKey">E</kbd>
+    <span id="promptVerb"></span>
+    <b id="promptName"></b>
+  </div>
+
+  <!-- The hint. Its own line rather than the subtitle, so a hint cannot be
+       wiped by an incidental bit of flavour text arriving behind it. -->
+  <div id="hint" aria-live="polite">
+    <span class="hint-tier" id="hintTier"></span>
+    <p class="hint-text" id="hintText"></p>
+  </div>
+
+  <!-- Always present, never nagging: the player learns help exists once and
+       then forgets it until they need it. -->
+  <p id="hintHint"><kbd>H</kbd><span data-i18n="hintAffordance">hint</span></p>
+
+  <p id="msg" aria-live="polite"></p>
+  <p id="sub"></p>
+  <p id="subtitle" aria-live="polite"></p>
+
+  <button id="btnPause" aria-label="Pause">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+  </button>
+
+  <!-- ---------------------------------------------- touch control rig --- -->
+  <div id="touch" hidden>
+    <!-- Whole left half: the floating stick appears wherever the thumb lands. -->
+    <div class="zone move" data-zone="move"></div>
+    <!-- Whole right half: bare drag-to-look. No widget, so nothing covers
+         the room. The buttons below sit on top of it. -->
+    <div class="zone look" data-zone="look"></div>
+
+    <div class="stick" data-stick><i class="ring"></i><i class="knob" data-knob></i></div>
+
+    <div class="acts">
+      <button class="act act-sprint" data-act="sprint" aria-pressed="false" aria-label="Sprint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 4a2 2 0 1 0 0-.1"/><path d="M6 20l3-5 3-2-1-5 4 3 3 1"/><path d="M8 11l3-2 3 1"/></svg>
+      </button>
+      <button class="act act-crouch" data-act="crouch" aria-pressed="false" aria-label="Crouch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M9 20v-4l-2-5 5-2 4 3 2 1"/><path d="M14 20v-4"/></svg>
+      </button>
+      <button class="act act-drop" data-act="drop" aria-label="Drop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 20h14"/></svg>
+      </button>
+      <button class="act act-use" data-act="interact" aria-label="Interact">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 11V4.5a1.5 1.5 0 0 1 3 0V11"/><path d="M15 11V6.5a1.5 1.5 0 0 1 3 0V13c0 4-2.5 7-6 7s-6-2.6-6-6v-4a1.5 1.5 0 0 1 3 0"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- =================================================== CINEMATIC LAYER ===
+     Owned entirely by ui/cinema.js. Every piece of it is inert until that
+     module raises it, and all of it is aria-hidden: the subtitle is announced
+     through #cnText's own live region, and letting a screen reader also walk
+     the letterbox bars and the fade plate would read out nothing but noise. -->
+<div id="cinema" aria-hidden="true">
+  <!-- Letterbox bars. Height is animated, so a cutscene can close them in
+       rather than snapping to 2.39:1. -->
+  <i class="cn-bar cn-top"></i>
+  <i class="cn-bar cn-bottom"></i>
+
+  <!-- Fade plate. Black by default; the director tints it for the flashback. -->
+  <div id="cnFade" class="cn-fade"></div>
+
+  <!-- Screen distortion: RGB split, scanline tear and a chromatic wobble.
+       Driven by a single --g amount so one call can scale all three. -->
+  <div id="cnGlitch" class="cn-glitch" hidden><i></i><i></i><i></i></div>
+
+  <!-- Smoke, for the title cards and the ending. -->
+  <div id="cnSmoke" class="cn-smoke" hidden><i></i><i></i></div>
+
+  <!-- Title cards: FLASHBACK, TO BE CONTINUED. -->
+  <div id="cnCard" class="cn-card" hidden>
+    <h2 id="cnCardText" class="cn-card-text"></h2>
+    <p id="cnCardSub" class="cn-card-sub"></p>
+  </div>
+
+  <!-- One spoken line. The speaker's name is a separate element so it can be
+       coloured per character without the text inheriting it. -->
+  <div id="cnLine" class="cn-line" hidden>
+    <b id="cnWho" class="cn-who"></b>
+    <p id="cnText" class="cn-text" aria-live="polite"></p>
+  </div>
+
+  <p id="cnSkip" class="cn-skip" hidden>
+    <kbd id="cnSkipKey">Space</kbd><span data-i18n="skipLine">skip line</span>
+    <em><kbd id="cnSkipHold">Esc</kbd><span data-i18n="skipScene">hold to skip scene</span></em>
+  </p>
+</div>
+
+
+<!-- ======================================================== OVERLAYS === -->
+<div id="pause" class="overlay" hidden>
+  <div class="card">
+    <p class="eyebrow"><span data-i18n="paused">Paused</span></p>
+    <h2 data-i18n="pausedTitle">The room waits</h2>
+    <dl class="readout">
+      <div><dt data-i18n="sizeLbl">Current size</dt><dd class="num" id="pzSize">4.00 × 4.00</dd></div>
+      <div><dt data-i18n="stabilityLbl">Room stability</dt><dd class="num" id="pzStab">100%</dd></div>
+      <div><dt data-i18n="checkpointLbl">Checkpoint</dt><dd id="pzCheck">01</dd></div>
+    </dl>
+    <div class="btns">
+      <button id="btnResume" class="pri" data-i18n="resume">Resume</button>
+      <button id="btnPauseSettings" data-i18n="settings">Settings</button>
+      <button id="btnMenu" data-i18n="quitToMenu">Quit to menu</button>
+    </div>
+  </div>
+</div>
+
+<div id="settings" class="overlay" hidden>
+  <div class="card wide">
+    <p class="eyebrow"><span data-i18n="settings">Settings</span></p>
+    <h2 data-i18n="settingsTitle">Calibration</h2>
+
+    <div class="setgrid">
+      <section class="sec">
+        <h3 data-i18n="secDisplay">Display</h3>
+        <div class="row"><span class="lbl" data-i18n="quality">Quality</span><div class="seg" id="segQuality"></div></div>
+        <div class="row"><span class="lbl" data-i18n="fov">Field of view</span><input type="range" id="rngFov" min="60" max="100" step="1"><output class="num" id="outFov"></output></div>
+        <div class="row"><span class="lbl" data-i18n="cameraShake">Camera shake</span><input type="range" id="rngShake" min="0" max="150" step="5"><output class="num" id="outShake"></output></div>
+        <div class="row"><span class="lbl" data-i18n="headBob">Head bob</span><input type="range" id="rngBob" min="0" max="150" step="5"><output class="num" id="outBob"></output></div>
+        <div class="row"><span class="lbl" data-i18n="crosshairLbl">Crosshair</span><div class="seg" id="segCrosshair"></div></div>
+      </section>
+
+      <section class="sec">
+        <h3 data-i18n="secAudio">Audio</h3>
+        <div class="row"><span class="lbl" data-i18n="master">Master</span><input type="range" id="rngMaster" min="0" max="100" step="1"><output class="num" id="outMaster"></output></div>
+        <div class="row"><span class="lbl" data-i18n="sfx">Effects</span><input type="range" id="rngSfx" min="0" max="100" step="1"><output class="num" id="outSfx"></output></div>
+        <div class="row"><span class="lbl" data-i18n="music">Atmosphere</span><input type="range" id="rngMusic" min="0" max="100" step="1"><output class="num" id="outMusic"></output></div>
+        <!-- Voices are their own fader because they are not in the Web Audio
+             graph at all: speech synthesis output cannot be routed through it,
+             so the master slider has to be applied to them by hand and a
+             player who wants the words quieter needs a control of their own. -->
+        <div class="row"><span class="lbl" data-i18n="voices">Voices</span><div class="seg" id="segVoices"></div></div>
+        <div class="row"><span class="lbl" data-i18n="voiceVol">Voice volume</span><input type="range" id="rngVoice" min="0" max="100" step="1"><output class="num" id="outVoice"></output></div>
+        <div class="row"><span class="lbl" data-i18n="subtitles">Subtitles</span><div class="seg" id="segSubtitles"></div></div>
+      </section>
+
+      <section class="sec">
+        <h3 data-i18n="secControls">Controls</h3>
+        <div class="row"><span class="lbl" data-i18n="sensitivity">Sensitivity</span><input type="range" id="rngSens" min="20" max="300" step="5"><output class="num" id="outSens"></output></div>
+        <div class="row"><span class="lbl" data-i18n="invertY">Invert look</span><div class="seg" id="segInvert"></div></div>
+        <div class="row touchonly" hidden><span class="lbl" data-i18n="toggleCrouch">Crouch</span><div class="seg" id="segCrouch"></div></div>
+        <div class="row"><span class="lbl" data-i18n="language">Language</span><div class="seg" id="segLang"></div></div>
+      </section>
+    </div>
+
+    <div class="btns">
+      <button id="btnSettingsClose" class="pri" data-close="settings" data-i18n="done">Done</button>
+      <button id="btnSettingsStages"><span data-i18n="stagesTitle">Stages</span><em class="count" id="stageCount2">6</em></button>
+      <button id="btnSettingsReset" data-i18n="resetDefaults">Reset to defaults</button>
+    </div>
+  </div>
+</div>
+
+<div id="howto" class="overlay" hidden>
+  <div class="card wide">
+    <p class="eyebrow"><span data-i18n="howToPlay">How to play</span></p>
+    <h2 data-i18n="howTitle">The room is your health</h2>
+    <p class="lede" data-i18n="howLede">Every puzzle you solve pushes the walls outward and opens new space. Every major failure brings them in. If the room runs out of space, so do you.</p>
+
+    <div class="kgrid" id="kgrid"></div>
+
+    <div class="btns">
+      <button class="pri" data-close="howto" data-i18n="understood">Understood</button>
+    </div>
+  </div>
+</div>
+
+<div id="stages" class="overlay" hidden>
+  <div class="card wide">
+    <p class="eyebrow"><span data-i18n="stagesTitle">Stages</span><span class="num" id="stagesTally"></span></p>
+    <h2 data-i18n="stagesHeading">Six doors. Six answers. One of them is a lie.</h2>
+    <p class="lede" id="stagesLede"></p>
+
+    <!-- Built by ui/screens.js from js/world/stages.js, so the list and the
+         game can never disagree about what finishing a stage requires. -->
+    <ol class="stagelist" id="stageList"></ol>
+
+    <div class="btns">
+      <button class="pri" data-close="stages" data-i18n="done">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="gameover" class="overlay" hidden>
+  <div class="card">
+    <p class="eyebrow"><span data-i18n="collapse">Collapse</span></p>
+    <h2 id="goTitle" data-i18n="goTitle">The room has no more space for you</h2>
+    <p id="goBody" class="lede" data-i18n="goBody">The walls met. You were between them.</p>
+    <dl class="readout">
+      <div><dt data-i18n="reachedLbl">Largest reached</dt><dd class="num" id="goBest">4 × 4</dd></div>
+      <div><dt data-i18n="checkpointLbl">Checkpoint</dt><dd id="goCheck">01</dd></div>
+    </dl>
+    <div class="btns">
+      <button id="btnRetry" class="pri" data-i18n="retry">Retry</button>
+      <button id="btnLoadCheck" data-i18n="loadCheckpoint">Load checkpoint</button>
+      <button id="btnGoMenu" data-i18n="mainMenu">Main menu</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================= LOADING === -->
+<div id="loading" hidden>
+  <div class="ld-center">
+    <p class="ld-eyebrow" id="ldEyebrow" data-i18n="chapterLbl">Chapter one</p>
+    <h2 class="ld-name" id="ldName">The Cell</h2>
+    <!-- A floor plan that draws itself: the right motif for a game about
+         rooms, and it reads as a survey rather than as a loading spinner. -->
+    <svg class="ld-plan" id="ldPlan" viewBox="0 0 200 140" aria-hidden="true">
+      <rect class="plan" x="20" y="20" width="160" height="100" rx="1"/>
+    </svg>
+    <div class="ld-bar"><i id="ldBar"></i></div>
+    <p class="ld-step" id="ldStep"></p>
+  </div>
+</div>
+
+
+<!-- ============================================= HARD INTERRUPTIONS === -->
+<div id="rotate" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 19h6"/></svg>
+  <p data-i18n="rotateTitle">Turn your phone</p>
+  <p class="muted" data-i18n="rotateBody">This one needs landscape.</p>
+</div>
+
+<div id="err" hidden role="alert">
+  <div class="err-card">
+    <h2 data-i18n="errTitle">The room did not load</h2>
+    <p id="errMsg" class="muted"></p>
+    <button onclick="location.reload()" data-i18n="reload">Reload</button>
+  </div>
+</div>
+
+<div id="debug" hidden></div>
+
+
+<script>
+/*
+ * Pre-module guard.
+ *
+ * Runs before the module graph is fetched, so it is the only thing that can
+ * report a failure to load one. Without it a syntax error, a blocked
+ * import-map or a file served with the wrong MIME type all present as a
+ * permanently black page with nothing in the UI to explain it.
+ */
+(function () {
+  var err = document.getElementById('err');
+  var msg = document.getElementById('errMsg');
+
+  function fail(text) {
+    if (window.__roomLoaded) return;
+    msg.textContent = text;
+    err.hidden = false;
+  }
+
+  window.addEventListener('error', function (e) {
+    fail((e && e.message) || 'Unknown error');
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    fail((e && e.reason && e.reason.message) || 'Failed to start');
+  });
+
+  // file:// cannot fetch ES modules at all, and the console error is opaque.
+  var slow = location.protocol === 'file:' ? 1200 : 25000;
+  setTimeout(function () {
+    if (window.__roomLoaded) return;
+    fail(location.protocol === 'file:'
+      ? 'This game must be served over http. Opening index.html directly does not work, because browsers refuse to load JavaScript modules from a file:// page.'
+      : 'The game files did not finish loading. Check your connection and reload.');
+  }, slow);
+})();
+</script>
+
+<script type="importmap">
+{ "imports": { "three": "./lib/three/build/three.module.js", "three/addons/": "./lib/three/examples/jsm/" } }
+</script>
+<script type="module" src="js/main.js"></script>
+
+<script>
+/*
+ * Service worker.
+ *
+ * ONLY OVER HTTPS, AND NEVER ON LOCALHOST - and the localhost half of that is
+ * the important half.
+ *
+ * The worker is cache-first by design: that is what makes the game play with
+ * the network off, and it is the right behaviour for a published build. It is
+ * the wrong behaviour on a development machine. A cached build keeps being
+ * served after the files on disk have changed, so an edit appears to do
+ * nothing - fonts that were swapped look unswapped, a rebuilt scene looks
+ * untouched, and the only clue is that nothing you do has any effect. That
+ * cost a long afternoon, which is why this is now a rule rather than a
+ * convenience.
+ *
+ * On localhost the page goes further and actively CLEANS UP: it unregisters
+ * any worker a previous build installed and deletes its caches. Without that,
+ * a worker installed before this change would carry on serving the old files
+ * forever, and the fix would look like it had not worked either.
+ */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  var host = location.hostname;
+  var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]' ||
+                /^192\.168\./.test(host) || /^10\./.test(host) || host.endsWith('.local');
+
+  if (isLocal) {
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      var had = regs.length > 0;
+      regs.forEach(function (r) { r.unregister(); });
+      if (window.caches && caches.keys) {
+        caches.keys().then(function (keys) {
+          keys.forEach(function (k) { if (k.indexOf('withroom') === 0 || k.indexOf('theroom') === 0) caches.delete(k); });
+        });
+      }
+      if (had) {
+        console.info('[sw] development host: removed a cached build. Reload once more to be sure you are on the current files.');
+      }
+    }).catch(function () {});
+    return;
+  }
+
+  if (location.protocol !== 'https:') return;
+
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Apache / cPanel hosting helpers (ignored by other servers)
+AddType application/manifest+json .webmanifest
+AddType font/woff2 .woff2
+AddType text/javascript .js .mjs
+AddType audio/mpeg .mp3
+<IfModule mod_headers.c>
+  <FilesMatch "^(sw\.js|index\.html)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

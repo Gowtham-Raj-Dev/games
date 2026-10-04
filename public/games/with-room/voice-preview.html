@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>WITHROOM — ghost voice preview</title>
+    <!--
+      A tool, not part of the game.
+
+      Every one of the ghost's lines, with the clip the game would load for it
+      and a button that plays it through the real chain in audio/manager.js -
+      the filters, the detuned double, the long reverb, the sub-bass bed. That
+      is the only way to judge a generated file, because a clip auditioned in
+      a file browser is not the sound the player hears.
+
+      "raw" plays the same buffer with none of that, which is what makes this
+      worth having: flip between the two and it is obvious whether a file is
+      wrong or merely dry.
+    -->
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0b0d;
+        --panel: #15151a;
+        --line: #26262e;
+        --ink: #e8e8ee;
+        --dim: #8b8b99;
+        --have: #5ddc9a;
+        --miss: #4a4a57;
+        --accent: #c75c5c;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+      h1 { font-size: 20px; letter-spacing: 0.02em; margin: 0 0 4px; }
+      .sub { color: var(--dim); margin: 0 0 20px; }
+      .bar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 12px 0;
+        background: linear-gradient(var(--bg) 70%, transparent);
+      }
+      button {
+        font: inherit;
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) { border-color: var(--dim); }
+      button:disabled { opacity: 0.4; cursor: default; }
+      button.primary { background: var(--accent); border-color: var(--accent); }
+      select, label { font: inherit; color: var(--dim); }
+      select {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 6px 8px;
+        color: var(--ink);
+      }
+      .status { color: var(--dim); margin-left: auto; font-variant-numeric: tabular-nums; }
+      table { width: 100%; border-collapse: collapse; }
+      th {
+        text-align: left;
+        font-weight: 500;
+        color: var(--dim);
+        border-bottom: 1px solid var(--line);
+        padding: 8px 10px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      td { border-bottom: 1px solid var(--line); padding: 10px; vertical-align: top; }
+      tr.playing { background: #1b1218; }
+      .id { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; color: var(--dim); }
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--miss);
+        margin-right: 8px;
+        vertical-align: 1px;
+      }
+      .dot.have { background: var(--have); }
+      .emo { color: var(--dim); font-size: 12px; }
+      .ta { color: var(--dim); display: block; margin-top: 3px; }
+      .acts { white-space: nowrap; }
+      .acts button { padding: 4px 9px; font-size: 13px; }
+      .note {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin: 0 0 20px;
+        color: var(--dim);
+      }
+      .note code { color: var(--ink); }
+      .wordless { color: var(--miss); font-style: italic; }
+      .tune {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        margin: 0 0 20px;
+      }
+      .tune h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); margin: 0 0 4px; font-weight: 500; }
+      .tune p { margin: 0 0 12px; color: var(--dim); }
+      .knobs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 20px; }
+      .knob { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; }
+      .knob .name { color: var(--ink); }
+      .knob .val { font-family: ui-monospace, Consolas, monospace; color: var(--dim); font-size: 13px; }
+      .knob input { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--accent); }
+      .knob .why { grid-column: 1 / -1; color: var(--dim); font-size: 12px; }
+      .tune .foot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+      pre.out {
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        background: #0d0d10;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--ink);
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 12px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>WITHROOM — ghost voice preview</h1>
+      <p class="sub">Every ghost line, its clip, and how it sounds once the game has finished with it.</p>
+
+      <p class="note">
+        Files go in <code>assets/audio/voice/ghost/en/&lt;id&gt;.wav</code> (or
+        <code>.mp3</code>). A green dot means the file loaded. Generate them dry
+        and identical — no reverb, no pitch shift, no effects — because
+        <strong>play</strong> here is the same chain the game uses, and doubling
+        up on processing is what makes a set sound inconsistent.
+        <strong>raw</strong> is the untouched file, for comparison.
+      </p>
+
+      <section class="tune">
+        <h2>Tone</h2>
+        <p>
+          Applied at play time, so these change how every clip sounds without
+          touching a file. Dial it in here, then paste the numbers into
+          <code>GHOST_VOICE</code> in <code>js/audio/manager.js</code> to make
+          them the game's defaults.
+        </p>
+        <div class="knobs" id="knobs"></div>
+        <div class="foot">
+          <button id="reset">Back to defaults</button>
+          <span style="color: var(--dim)">Changes apply to the next line played.</span>
+        </div>
+        <pre class="out" id="dump"></pre>
+      </section>
+
+      <div class="bar">
+        <button id="boot" class="primary">Enable audio</button>
+        <label>Language
+          <select id="lang">
+            <option value="en">English</option>
+            <option value="ta">Tamil</option>
+          </select>
+        </label>
+        <button id="reload" disabled>Reload clips</button>
+        <button id="all" disabled>Play all found</button>
+        <button id="stop" disabled>Stop</button>
+        <span class="status" id="status">Audio needs a click first.</span>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 56px">id</th>
+            <th style="width: 78px">tone</th>
+            <th>line</th>
+            <th style="width: 150px"></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <script type="module">
+      import { audio } from "./js/audio/manager.js";
+      import * as script from "./js/story/script.js";
+      import * as clips from "./js/story/voiceClips.js";
+
+      /*
+       * The same walk voiceClips.js does, for the same reason: this page has to
+       * show the ids in the order they were assigned, or a mismatch between the
+       * table and the filenames would be invisible.
+       */
+      const ORDER = [
+        "GHOST_INTRO", "REVEAL",
+        "SOLVED_1", "SOLVED_2", "SOLVED_3", "SOLVED_4", "SOLVED_5", "SOLVED_6",
+        "FLASHBACK", "ENDLESS", "WHISPERS",
+      ];
+
+      const INLINE = [
+        { who: "ghost", emo: "cold", en: "Three seventeen. That one is mine.", ta: "மூணு பதினேழு. அது என்னுடையது." },
+        { who: "ghost", emo: "whisper", en: "You do not know which one she is behind.", ta: "அவ எந்தக் கதவுக்குப் பின்னால இருக்கான்னு உனக்குத் தெரியாது." },
+        { who: "ghost", emo: "cold", en: "You were holding the answer. You put it on a bed.", ta: "பதில் உன் கையிலேயே இருந்துச்சு. அதை நீ கட்டில்ல வெச்சுட்ட." },
+      ];
+
+      const lines = [];
+      for (const name of ORDER) {
+        const seq = script[name];
+        if (!Array.isArray(seq)) continue;
+        for (const line of seq) {
+          if (line && line.who === "ghost") lines.push({ line, from: name });
+        }
+      }
+      for (const line of INLINE) lines.push({ line, from: "inline" });
+
+      /* ------------------------------------------------------------- tuning */
+
+      /*
+       * Which of the chain's numbers are worth a slider.
+       *
+       * Not all fourteen: the ones that change the character of the voice
+       * rather than trimming it. The rest stay at their defaults and can be
+       * edited in manager.js by anyone who wants them.
+       */
+      const KNOBS = [
+        { key: "rate", min: 0.55, max: 1, step: 0.01, why: "Speed and pitch together. Lower is deeper and slower." },
+        { key: "ring", min: 0, max: 0.8, step: 0.01, why: "The possessed buzz. Past about 0.45 the words start to go." },
+        { key: "sub", min: 0, max: 0.8, step: 0.01, why: "An octave-down growl under the voice. Weight, not words." },
+        { key: "double", min: 0, max: 0.9, step: 0.01, why: "The second mouth, half a beat behind." },
+        { key: "wobble", min: 0, max: 80, step: 1, why: "Cents of pitch drift. A throat that cannot hold a note." },
+        { key: "lowpass", min: 1200, max: 6000, step: 50, why: "Darkness. Lower closes the voice in." },
+        { key: "sibilance", min: -18, max: 0, step: 0.5, why: "dB cut at 2.2 kHz, where synthetic hiss lives." },
+        { key: "ringFrom", min: 12, max: 60, step: 1, why: "Ring rate at the start of a line." },
+        { key: "ringTo", min: 8, max: 60, step: 1, why: "...and by the end of it. Falling reads as losing its grip." },
+      ];
+
+      const defaults = audio.ghostVoiceDefaults();
+      let tuning = { ...defaults };
+
+      const knobsEl = document.getElementById("knobs");
+      const dumpEl = document.getElementById("dump");
+      const inputs = new Map();
+
+      function redraw() {
+        for (const [key, input] of inputs) {
+          input.value = tuning[key];
+          input.parentElement.querySelector(".val").textContent = tuning[key];
+        }
+        // Only what differs from the defaults, so the paste is a patch rather
+        // than a wall of unchanged numbers.
+        const changed = Object.entries(tuning).filter(([k, v]) => v !== defaults[k]);
+        dumpEl.textContent = changed.length
+          ? changed.map(([k, v]) => `  ${k}: ${v},`).join("\n")
+          : "// unchanged from the defaults in manager.js";
+      }
+
+      for (const knob of KNOBS) {
+        const row = document.createElement("div");
+        row.className = "knob";
+        row.innerHTML = `
+          <span class="name">${knob.key}</span>
+          <span class="val"></span>
+          <input type="range" min="${knob.min}" max="${knob.max}" step="${knob.step}" />
+          <span class="why">${knob.why}</span>
+        `;
+        const input = row.querySelector("input");
+        input.oninput = () => {
+          tuning[knob.key] = Number(input.value);
+          redraw();
+        };
+        inputs.set(knob.key, input);
+        knobsEl.appendChild(row);
+      }
+
+      document.getElementById("reset").onclick = () => {
+        tuning = { ...defaults };
+        redraw();
+      };
+      redraw();
+
+      const el = {
+        rows: document.getElementById("rows"),
+        boot: document.getElementById("boot"),
+        lang: document.getElementById("lang"),
+        reload: document.getElementById("reload"),
+        all: document.getElementById("all"),
+        stop: document.getElementById("stop"),
+        status: document.getElementById("status"),
+      };
+
+      let ready = false;
+      let playing = null;
+      let queue = [];
+
+      /* ---------------------------------------------------------------- table */
+
+      const rowFor = new Map();
+      let n = 0;
+
+      for (const entry of lines) {
+        const { line } = entry;
+        n++;
+        const id = `g${String(n).padStart(2, "0")}`;
+        entry.id = id;
+        // A wordless laugh keeps its number but has no file: the laugh is built
+        // from oscillators at play time, and there is nothing to audition.
+        entry.wordless = !line.en && !line.ta;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="id"><span class="dot"></span>${id}</td>
+          <td class="emo">${line.emo}</td>
+          <td></td>
+          <td class="acts"></td>
+        `;
+        const text = tr.children[2];
+        if (entry.wordless) {
+          text.innerHTML = `<span class="wordless">(wordless laugh — procedural, no file)</span>`;
+        } else {
+          text.textContent = line.en || "";
+          const ta = document.createElement("span");
+          ta.className = "ta";
+          ta.textContent = line.ta || "";
+          text.appendChild(ta);
+        }
+
+        if (!entry.wordless) {
+          const play = document.createElement("button");
+          play.textContent = "play";
+          play.disabled = true;
+          play.onclick = () => one(entry, false);
+
+          const raw = document.createElement("button");
+          raw.textContent = "raw";
+          raw.disabled = true;
+          raw.onclick = () => one(entry, true);
+
+          tr.children[3].append(play, document.createTextNode(" "), raw);
+          entry.buttons = [play, raw];
+        }
+
+        el.rows.appendChild(tr);
+        rowFor.set(entry, tr);
+      }
+
+      /* ---------------------------------------------------------------- clips */
+
+      /**
+       * Ask the audio manager for every clip and report what came back.
+       *
+       * `audio.clip()` is synchronous and returns undefined while a load is in
+       * flight, so this polls: the point of the page is to show what IS loaded,
+       * and a load that has not finished is not a file that is missing.
+       */
+      async function scan() {
+        const lang = el.lang.value;
+        audio.preloadClips(clips.pathsFor(lang));
+
+        for (let attempt = 0; attempt < 40; attempt++) {
+          let pending = 0;
+          let found = 0;
+
+          for (const entry of lines) {
+            if (entry.wordless) continue;
+            const path = clips.pathFor(entry.line, lang);
+            const buf = path ? audio.clip(path) : null;
+            entry.buffer = buf || null;
+            if (buf === undefined) pending++;
+            else if (buf) found++;
+
+            const dot = rowFor.get(entry).querySelector(".dot");
+            dot.classList.toggle("have", !!buf);
+            for (const b of entry.buttons) b.disabled = !buf;
+          }
+
+          const total = lines.filter((e) => !e.wordless).length;
+          el.status.textContent = pending
+            ? `${found} of ${total} loaded, ${pending} still fetching…`
+            : `${found} of ${total} clips found (${lang}).`;
+          el.all.disabled = found === 0;
+          if (!pending) return;
+          await new Promise((r) => setTimeout(r, 250));
+        }
+      }
+
+      /* -------------------------------------------------------------- playing */
+
+      function clear() {
+        if (playing) {
+          playing.stop?.();
+          rowFor.get(playing.entry)?.classList.remove("playing");
+          playing = null;
+        }
+        el.stop.disabled = true;
+      }
+
+      function one(entry, raw) {
+        clear();
+        queue = [];
+        play(entry, raw);
+      }
+
+      function play(entry, raw) {
+        if (!entry.buffer) return next();
+        const tr = rowFor.get(entry);
+        tr.classList.add("playing");
+        tr.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+        const handle = audio.voiceClip(entry.buffer, { ...tuning, gain: 0.95, raw });
+
+        // The bed is what the game puts under a line, sized to it. Without it
+        // a clip auditioned here is quieter and thinner than the real thing.
+        if (!raw) {
+          audio.play("ghostBreath", { gain: entry.line.emo === "cold" ? 0.7 : 0.85 });
+          audio.ghostVoiceBed(handle.seconds, { grains: true, grainLevel: 0.5 });
+        }
+
+        playing = { entry, stop: handle.stop };
+        el.stop.disabled = false;
+        el.status.textContent = `${entry.id} — ${handle.seconds.toFixed(2)}s${raw ? " (raw)" : ""}`;
+
+        window.setTimeout(() => {
+          tr.classList.remove("playing");
+          if (playing && playing.entry === entry) playing = null;
+          next();
+        }, handle.seconds * 1000 + 500);
+      }
+
+      function next() {
+        if (!queue.length) {
+          el.stop.disabled = true;
+          return;
+        }
+        play(queue.shift(), false);
+      }
+
+      /* ---------------------------------------------------------------- wiring */
+
+      el.boot.onclick = async () => {
+        audio.init();
+        audio.setVolumes?.({ master: 0.9, sfx: 1, music: 0.6 });
+        ready = true;
+        el.boot.disabled = true;
+        el.reload.disabled = false;
+        el.status.textContent = "Loading clips…";
+        await scan();
+      };
+
+      el.reload.onclick = () => { clear(); scan(); };
+      el.lang.onchange = () => { if (ready) { clear(); scan(); } };
+      el.all.onclick = () => {
+        clear();
+        queue = lines.filter((e) => e.buffer);
+        next();
+      };
+      el.stop.onclick = () => { queue = []; clear(); };
+    </script>
+  </body>
+</html>

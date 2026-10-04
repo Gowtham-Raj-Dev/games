@@ -1,0 +1,228 @@
+/* The player. The frame itself is the one dark surface on the page, because the
+   game renders dark and a white border around a bright canvas reads as a bug.
+   It uses the existing --bg-dark token, so no new colour enters the system. */
+
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-dark);
+}
+
+/* In fullscreen the element has no aspect ratio to keep - fill the screen. */
+.frame:fullscreen {
+  aspect-ratio: auto;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+
+.iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* -------------------------------- Poster --------------------------------- */
+
+.poster {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  text-align: center;
+}
+
+.posterImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+}
+
+/* The copy is centred over the still, so the scrim stays dark through the
+   middle rather than fading out there - the auto-stop note is three lines of
+   small text and has to read over whatever the screenshot happens to show. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(17, 18, 20, 0.94),
+    rgba(17, 18, 20, 0.72) 55%,
+    rgba(17, 18, 20, 0.6)
+  );
+}
+
+.posterBody {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  height: 100%;
+  padding-inline: 1.5rem;
+}
+
+.playDisc {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: transform 0.18s var(--ease);
+}
+
+.poster:hover .playDisc,
+.poster:focus-visible .playDisc {
+  transform: scale(1.06);
+}
+
+/* The triangle is filled so it reads at a glance, not as an outline. It takes
+   `--accent-on` because the disc behind it is the accent fill - white would
+   only reach 2.6:1 on that orange. */
+.playIcon {
+  fill: var(--accent-on);
+  color: var(--accent-on);
+  margin-left: 3px;
+}
+
+.posterTitle {
+  font-family: var(--font-head);
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  font-weight: 600;
+  color: var(--on-dark);
+}
+
+.posterNote {
+  max-width: 24rem;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--on-dark-2);
+}
+
+@media (min-width: 700px) {
+  .playDisc {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* --------------------------- Rotate your phone --------------------------- */
+
+/* Hidden by default and only raised over a running game on a portrait phone,
+   so it can never cover the player on a desktop. */
+.rotate {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 780px) {
+  .rotate {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 0.5rem;
+    position: absolute;
+    inset: 0;
+    padding: 1.5rem;
+    background: var(--bg-dark);
+    text-align: center;
+  }
+}
+
+.rotateIcon {
+  color: var(--on-dark);
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotateTitle {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--on-dark);
+}
+
+.rotateBody {
+  font-size: 0.85rem;
+  color: var(--on-dark-2);
+}
+
+/* -------------------------------- Toolbar -------------------------------- */
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.btn,
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raise);
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition:
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+
+.btn:hover {
+  border-color: var(--ink);
+}
+
+.primaryBtn {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.primaryBtn:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.hint {
+  flex: 1 1 16rem;
+  min-width: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--accent-ink);
+}
+
+.warn svg {
+  flex: none;
+  margin-top: 0.15rem;
+}

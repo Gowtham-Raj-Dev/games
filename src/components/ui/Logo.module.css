@@ -1,0 +1,29 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  /* Drives the tile and the knocked-out D-pad inside the mark. */
+  color: var(--accent);
+}
+
+.mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
+
+/* The wordmark is a brand name, so it stays on the Latin display face even
+   when the interface language is Tamil. */
+.word {
+  display: flex;
+  gap: 0.26em;
+  font-family: var(--font-brand);
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.accent {
+  color: var(--accent-ink);
+}

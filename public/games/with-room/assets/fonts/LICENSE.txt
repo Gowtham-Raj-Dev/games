@@ -1,0 +1,18 @@
+WITHROOM ships four typefaces, all under the SIL Open Font License 1.1, which
+permits use, modification and redistribution in a product including this one.
+
+  Cinzel             Natanael Gama.          cinzel-{400,600,700}.woff2
+                     https://fonts.google.com/specimen/Cinzel
+
+  Spectral           Production Type.        spectral-{400,600}.woff2
+                     https://fonts.google.com/specimen/Spectral
+
+  Share Tech Mono    Carrois Apostrophe.     sharetechmono-400.woff2
+                     https://fonts.google.com/specimen/Share+Tech+Mono
+
+  Noto Serif Tamil   The Noto Project.       notoseriftamil-{500,700}.woff2
+                     https://fonts.google.com/noto/specimen/Noto+Serif+Tamil
+
+Each file is the Latin subset (Tamil, for the last) as served by Google Fonts,
+self-hosted here so the game runs with no network and no third-party request.
+The full licence text is at https://openfontlicense.org.

@@ -1,0 +1,167 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(11, 12, 14, 0.82);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s var(--ease);
+}
+
+.bordered {
+  border-bottom-color: var(--line);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 68px;
+}
+
+.brand {
+  flex: none;
+}
+
+/* --------------------------- Desktop navigation -------------------------- */
+
+.nav {
+  display: none;
+}
+
+/*
+ * The row must never wrap: five items plus the wordmark and the play button is
+ * close to the shell width, and a wrapped nav doubles the header height and
+ * shoves the page down. `nowrap` here plus `white-space: nowrap` on each link
+ * keeps it on one line, and the desktop breakpoint below only switches the nav
+ * on once there is room for the whole row.
+ */
+.navList {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: clamp(0.9rem, 1.8vw, 1.6rem);
+}
+
+.navLink {
+  position: relative;
+  display: inline-block;
+  padding-block: 0.3rem;
+  white-space: nowrap;
+  font-size: 0.92rem;
+  color: var(--ink-2);
+  transition: color 0.18s var(--ease);
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s var(--ease);
+}
+
+.navLink:hover {
+  color: var(--ink);
+}
+
+.navLink:hover::after,
+.navOn::after {
+  transform: scaleX(1);
+}
+
+.navOn {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ------------------------------- Actions --------------------------------- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: none;
+}
+
+.playBtn {
+  display: none;
+}
+
+.burger {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  transition: border-color 0.18s var(--ease);
+}
+
+.burger:hover {
+  border-color: var(--ink);
+}
+
+/* ----------------------------- Mobile panel ------------------------------ */
+
+/*
+ * Rendered only while open (conditional in the component), so there is no
+ * hidden-but-present panel to trap focus or cover content.
+ */
+.panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 1rem var(--gutter) 1.5rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 18px 36px -22px rgba(0, 0, 0, 0.75);
+}
+
+.panelList {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.panelLink {
+  display: block;
+  padding: 0.95rem 0.1rem;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-head);
+  font-size: 1.12rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.panelLink:hover {
+  color: var(--accent-ink);
+}
+
+.panelFoot {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+}
+
+/* ------------------------------ Breakpoints ------------------------------ */
+
+@media (min-width: 1040px) {
+  .nav,
+  .playBtn {
+    display: block;
+  }
+
+  .burger,
+  .panel {
+    display: none;
+  }
+}

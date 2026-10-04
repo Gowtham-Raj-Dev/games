@@ -1,0 +1,682 @@
+/* ============================================================================
+   VELOCITY RIFT - PHONE LAYOUT
+   ----------------------------------------------------------------------------
+   A separate design, not the desktop one squeezed. The desktop garage is a
+   three-column rail over a live showroom; on a phone that rail has nowhere to
+   go, so this file replaces it outright:
+
+     garage   the showroom keeps the top of the screen and every panel folds
+              into a bottom sheet with four tabs, under an action bar that
+              never scrolls away
+     HUD      one top strip with fixed zones instead of four free-floating
+              corners, so nothing can land on top of anything else
+     controls a wider thumb rig with an analog steering strip, sized from the
+              short edge of the screen rather than from the viewport height
+
+   Everything here is gated on a body class the engine sets:
+     .touch   coarse pointer  -> HUD + control rig
+     .phone   coarse AND a small screen -> the garage shell as well
+   A touch laptop therefore keeps the desktop garage, which fits it fine.
+   Loaded after style.css, so plain specificity wins; no !important.
+============================================================================ */
+
+/* ========================== 1. GARAGE SHELL =============================== */
+
+/* The shell is built by the engine, so until it is mounted the desktop rail
+   would flash in portrait. Hide what it is about to move for that one frame. */
+body.phone #menu:not(.m-on) > section,
+body.phone #menu:not(.m-on) .showarrows,
+body.phone #menu:not(.m-on) .showlabel { visibility: hidden }
+
+body.phone #menu.m-on {
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ---- top bar ---- */
+body.phone #menu.m-on .topbar {
+  flex: none;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 8px;
+  gap: 8px;
+}
+body.phone #menu.m-on .brand { font-size: 19px; gap: 6px }
+body.phone #menu.m-on .brand small { display: none }
+body.phone #menu.m-on .tools { gap: 6px }
+body.phone #menu.m-on .iconbtn {
+  height: 38px;
+  min-width: 38px;
+  padding: 0 10px;
+  justify-content: center;
+}
+body.phone #menu.m-on .iconbtn .lbl2,
+body.phone #menu.m-on #btnName .nm { display: none }
+/* At 360px the brand plus four controls do not fit, and the last of them was
+   being clipped off the edge. The keyboard-key sheet is the one to go: there is
+   no keyboard here, and Settings already carries the touch rows and the link
+   into the control-layout editor. */
+body.phone #menu.m-on #btnControls { display: none }
+body.phone #menu.m-on .langpill button { padding: 8px 9px; font-size: 11px }
+
+/* ---- showroom band: the live 3D car shows through this gap ---- */
+.m-show {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 10px;
+  pointer-events: none;
+}
+/* only the controls take taps; the rest of the band is the orbit drag area */
+.m-show > * { pointer-events: auto }
+.m-show .carhead {
+  width: 100%;
+  max-width: 420px;
+  gap: 14px;
+  background: none;
+}
+.m-show .carhead .nm { text-align: center }
+.m-show .carhead .nm b {
+  font-size: clamp(22px, 7vw, 30px);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .75);
+}
+.m-show .carhead .nm small { margin-top: 3px; font-size: 12px }
+.m-show .arrow {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(10, 12, 20, .72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.m-show .dots { width: min(220px, 60%); gap: 5px }
+.m-show .dots i { height: 3px }
+/* a hint that the car itself can be spun, faded out after the first drag */
+.m-spin {
+  font: 600 10px/1 var(--display);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--dim);
+  opacity: .9;
+  transition: opacity .4s;
+}
+body.m-spun .m-spin { opacity: 0 }
+
+/* ---- bottom sheet ---- */
+.m-sheet {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(180deg, rgba(14, 17, 27, .97), rgba(8, 10, 16, .99));
+  box-shadow: 0 -16px 44px rgba(0, 0, 0, .6);
+}
+
+/* tab bar: four equal targets, the active one carries the hot underline */
+.m-tabs {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: 6px 8px 0;
+}
+.m-tabs button {
+  position: relative;
+  min-height: 46px;
+  padding: 7px 2px 9px;
+  border: 0;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font: 700 10px/1 var(--display);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border-radius: 10px;
+}
+.m-tabs button svg { width: 19px; height: 19px }
+.m-tabs button[aria-selected="true"] { color: var(--fg) }
+.m-tabs button[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--hot);
+  box-shadow: 0 0 10px var(--hot);
+}
+body.ta .m-tabs button { letter-spacing: 0; font-size: 11px }
+
+/* the scrolling body. Height is capped so the car is never fully covered. */
+.m-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 42vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px 4px;
+  border-top: 1px solid rgba(255, 255, 255, .06);
+}
+.m-pane { display: flex; flex-direction: column; gap: 14px }
+.m-pane[hidden] { display: none }
+.m-pane .eyebrow { margin-bottom: -4px }
+.m-pane .sec h3,
+.m-pane .trackhead { margin: 0 }
+
+/* touch-sized segmented controls - the desktop ones are 10px-tall targets */
+body.phone .m-body .seg button { min-height: 44px; font-size: 13px; border-radius: 9px }
+body.phone .m-body .stylerow { grid-template-columns: 1fr; gap: 8px }
+body.phone .m-body .stylerow .seg button { min-height: 40px; font-size: 12px }
+body.phone .m-body .swatches { gap: 10px }
+body.phone .m-body .swatches button { width: 38px; height: 38px }
+body.phone .m-body .stat { grid-template-columns: 84px 1fr 68px; font-size: 13px }
+body.phone .m-body .record { padding: 14px }
+
+/* circuits read as a vertical list on a phone, not a horizontal filmstrip:
+   a thumb scrolls down the sheet it is already in, and every card is legible */
+body.phone .m-pane .trackwrap { display: flex; flex-direction: column; gap: 10px; padding: 0 }
+body.phone .m-pane .tnav { display: none }
+body.phone .m-pane .tracks {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  overflow: visible;
+  scroll-snap-type: none;
+  padding: 0;
+  -webkit-mask: none;
+  mask: none;
+}
+body.phone .m-pane .tracks .stage { flex: none; width: 100% }
+body.phone .m-pane .stage .thumb { aspect-ratio: 16 / 6.4 }
+body.phone .m-pane .stage small { display: block }
+body.phone .m-pane .stage[aria-pressed="true"] { transform: none }
+
+/* ---- action bar: Start never scrolls out of reach ---- */
+.m-act {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: stretch;
+  padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  border-top: 1px solid rgba(255, 255, 255, .07);
+  background: rgba(6, 7, 12, .5);
+}
+body.phone .m-act #btnStart { height: 58px; font-size: 19px; border-radius: 12px }
+/* the friends button keeps its colour but drops to an icon square beside Start */
+body.phone .m-act #btnOnline {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  border-radius: 12px;
+  gap: 0;
+}
+body.phone .m-act #btnOnline span:not(.live) { display: none }
+body.phone .m-act #btnOnline .live {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 8px;
+  padding: 2px 3px;
+}
+body.phone .m-act #btnOnline svg { width: 22px; height: 22px }
+body.phone .kbdhint { display: none }
+
+/* ---- landscape phone: the sheet becomes a side panel ----
+   A phone on its side is about 390px tall. A sheet across the bottom of that
+   leaves the car a 90px strip to live in, with its name printed over the roof.
+   The screen is wide, not tall, so the same three parts turn ninety degrees:
+   showroom in the left column, sheet down the right, Start still at its foot. */
+@media (orientation: landscape) and (max-height: 560px) {
+  body.phone #menu.m-on {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(46%, 430px);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  body.phone #menu.m-on .topbar {
+    grid-column: 1 / -1;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+    padding-bottom: 4px;
+  }
+  .m-show {
+    grid-column: 1;
+    grid-row: 2;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  }
+  .m-show .carhead .nm b { font-size: clamp(19px, 4.4vw, 26px) }
+  .m-show .arrow { width: 42px; height: 42px }
+  /* the orbit hint costs a line the column does not have at this height */
+  .m-spin { display: none }
+
+  .m-sheet {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    border-radius: 18px 0 0 0;
+    box-shadow: -16px 0 44px rgba(0, 0, 0, .55);
+  }
+  /* the panel is the full height of the column, so the body takes what is left
+     over from the tabs and the action bar instead of a share of the viewport */
+  .m-body { max-height: none; padding-bottom: 8px }
+  .m-tabs button { min-height: 42px; font-size: 9px; gap: 3px }
+  .m-tabs button svg { width: 17px; height: 17px }
+  .m-act { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px) }
+  /* #btnStart has overflow:hidden for its shine sweep, so a label wider than
+     the button is silently cut rather than pushing the button out. In the side
+     panel at 740px that row is only ~247px across - this fits it. */
+  body.phone .m-act #btnStart { height: 50px; font-size: clamp(12px, 2.1vw, 17px); letter-spacing: .05em; gap: 8px }
+  body.phone .m-act #btnStart svg { width: 18px; height: 18px }
+  body.phone .m-act #btnOnline { width: 50px; height: 50px }
+  /* One circuit per row, not two. Two across in a 430px panel makes each card
+     about 149px wide, and .cap is absolutely positioned at the bottom with
+     26px of top padding - taller than the 60px thumb it sits on, so the
+     circuit name was pushed clean off the top of its own card. One column
+     gives a card wide enough for its caption. */
+}
+
+/* ---- what the shell replaces ---- */
+body.phone #menu.m-on .showarrows,
+body.phone #menu.m-on .showlabel,
+body.phone #menu.m-on > section.panel-car,
+body.phone #menu.m-on > section.panel-setup,
+body.phone #menu.m-on > section.trackwrap { display: none }
+
+/* ========================== 2. OVERLAYS =================================== */
+/* Full-height cards with their own scroll, so a long results table or the
+   online lobby never pushes its buttons off the bottom of a short screen. */
+body.phone .overlay { padding: 0; place-items: stretch }
+body.phone .card {
+  /* style.css sets no global border-box, so width:100% plus the padding below
+     would make the card 36px wider than the screen and scroll the whole sheet
+     sideways - taking the Done row off the right edge with it. */
+  box-sizing: border-box;
+  width: 100%;
+  max-height: none;
+  border-radius: 0;
+  border: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) 18px
+           calc(env(safe-area-inset-bottom, 0px) + 18px);
+  display: flex;
+  flex-direction: column;
+}
+body.phone .card h2 { font-size: 30px }
+/* only the closing row pins to the bottom - an earlier .btns stays in flow */
+body.phone .card > .btns:last-child {
+  margin-top: auto;
+  padding-top: 18px;
+  position: sticky;
+  bottom: 0;
+}
+body.phone .card .btns button { min-height: 50px }
+body.phone .oncols,
+body.phone .lobbygrid,
+body.phone .prow { grid-template-columns: 1fr }
+body.phone .codebar .code { font-size: 34px }
+/* Settings pairs its sections two across. A three-button segment needs about
+   190px to show its labels, so on a phone the pair only survives where there is
+   room for both halves - otherwise the card scrolls sideways and the Done row
+   goes with it. */
+/* 190px let four columns form on a wide landscape card, which squeezed each
+   three-button segment to ~68px and ellipsised "ENGLISH" and "NORMAL". 240
+   gives three columns there and one on a portrait card. */
+body.phone .sheet .grid2 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) }
+body.phone .tblwrap { flex: 1 1 auto; min-height: 0; overflow: auto }
+
+/* landscape phone: an overlay card is wide and short, so lay its sections out
+   in two columns and keep the buttons on one row. Same 560px cut as the garage
+   side panel above, so no device gets one of the two and not the other. */
+@media (orientation: landscape) and (max-height: 560px) {
+  body.phone .card { padding-top: calc(env(safe-area-inset-top, 0px) + 12px) }
+  body.phone .card h2 { font-size: 24px; margin-bottom: 2px }
+  body.phone .card p { margin-bottom: 12px }
+  body.phone .prow { grid-template-columns: 1fr 1fr }
+  body.phone .card .btns button { min-height: 44px }
+}
+
+/* ========================== 3. HUD ======================================== */
+/* One strip across the top with three fixed zones. The desktop HUD pins four
+   independent corners, which on a 360px-tall landscape screen overlap; here a
+   grid lays the zones out, so they cannot collide at any size. */
+/* `--hu` is one percent of the SHORT edge. Every size below is in multiples of
+   it, so the HUD is the same physical size whichever way the phone is held -
+   vh would make each readout balloon in portrait. */
+body.touch #hud { --hu: 1svmin; display: grid; grid-template-rows: auto 1fr; align-content: start }
+@supports not (width: 1svmin) { body.touch #hud { --hu: 1vmin } }
+
+body.touch .m-top {
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px)
+           calc(env(safe-area-inset-right, 0px) + 10px) 0
+           calc(env(safe-area-inset-left, 0px) + 10px);
+}
+/* the two readout zones stop being free-floating and sit in the strip instead */
+body.touch .m-top .tl,
+body.touch .m-top .tr { position: static; inset: auto }
+
+body.touch .tl { flex-direction: row; align-items: center; gap: 10px }
+body.touch .posbox { gap: 9px; align-items: center }
+body.touch .tl .pos { font-size: clamp(24px, 7 * var(--hu), 38px) }
+body.touch .tl .pos small { font-size: .42em }
+body.touch .tl .lapbox { padding-left: 8px }
+body.touch .tl .lapbox .lbl { font-size: 8px; letter-spacing: .16em }
+body.touch .tl .lapbox b { font-size: clamp(13px, 3.6 * var(--hu), 18px) }
+
+/* right: lap time and best. Total is desktop-only detail at this size. */
+body.touch .tr { justify-self: end; gap: 7px; align-items: stretch }
+body.touch .tr .t {
+  width: auto;
+  min-width: clamp(62px, 16 * var(--hu), 92px);
+  padding: 5px 9px 6px;
+  border-radius: 10px;
+}
+body.touch .tr .t .lbl { font-size: 8px; letter-spacing: .14em }
+body.touch .tr .t b { font-size: clamp(13px, 3.6 * var(--hu), 18px) }
+body.touch .tr .t.tot { display: none }
+body.touch #btnPause {
+  width: clamp(36px, 9 * var(--hu), 46px);
+  height: clamp(36px, 9 * var(--hu), 46px);
+  align-self: center;
+  font-size: 13px;
+  background: rgba(7, 8, 13, .62);
+}
+
+/* minimap hangs under the right-hand zone, clear of both the timers and the
+   control rig; sized from the short edge so it shrinks with the screen */
+body.touch #minimap {
+  left: auto;
+  bottom: auto;
+  right: calc(env(safe-area-inset-right, 0px) + 10px);
+  top: calc(env(safe-area-inset-top, 0px) + clamp(48px, 13 * var(--hu), 68px));
+  width: clamp(66px, 19 * var(--hu), 104px);
+  height: clamp(66px, 19 * var(--hu), 104px);
+  opacity: .92;
+}
+/* speed strip: centred in the clear lane between the two thumb zones */
+body.touch #gauge {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  width: clamp(132px, 34 * var(--hu), 210px);
+  height: clamp(50px, 13 * var(--hu), 80px);
+}
+body.touch #board { display: none }
+body.touch #msg { top: 21%; font-size: clamp(34px, 9vw, 86px) }
+body.touch #msg.small { font-size: clamp(20px, 4.4vw, 38px) }
+body.touch #sub { top: calc(21% + clamp(40px, 10vw, 96px)); font-size: 13px; letter-spacing: .22em }
+body.touch #netbadge {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(70px, 16vh, 96px));
+  right: 50%;
+  transform: translateX(50%);
+  font-size: 10px;
+  padding: 5px 10px;
+}
+
+/* ========================== 4. CONTROL RIG ================================ */
+/* Sized from the SHORT edge (svmin), not from vh: on a landscape phone vh is
+   the small dimension, so vh-sized pads shrink exactly when the screen is at
+   its widest and there is most room for them. */
+body.touch #touch {
+  --u: 1svmin;
+  --pad: clamp(78px, 26 * var(--u), 118px);
+  --ped-w: clamp(84px, 25 * var(--u), 122px);
+  --ped-h: clamp(78px, 25 * var(--u), 124px);
+  --ped-sw: clamp(72px, 21 * var(--u), 104px);
+  --ped-sh: clamp(46px, 13 * var(--u), 64px);
+  gap: 10px;
+  padding: 0 calc(env(safe-area-inset-right, 0px) + 12px)
+             calc(env(safe-area-inset-bottom, 0px) + 12px)
+             calc(env(safe-area-inset-left, 0px) + 12px);
+}
+@supports not (width: 1svmin) { body.touch #touch { --u: 1vmin } }
+
+/* Portrait is not how this game is played - it is landscape-locked, and a
+   portrait phone mid-race gets the "turn your phone" card. But the rig is still
+   laid out behind that card, and at its landscape floors (78 + 84 + 72px of
+   minimums) it comes out wider than a 360px screen. The pad editor is reachable
+   in portrait from the website too. So portrait gets its own, smaller floors:
+   the same rig, scaled to an edge less than half as wide. */
+@media (orientation: portrait) {
+  body.touch #touch {
+    --pad: clamp(52px, 18 * var(--u), 92px);
+    --ped-w: clamp(56px, 19 * var(--u), 96px);
+    --ped-h: clamp(52px, 19 * var(--u), 98px);
+    --ped-sw: clamp(48px, 16 * var(--u), 82px);
+    --ped-sh: clamp(34px, 10 * var(--u), 50px);
+  }
+  body.touch.steer-slider #tSteer {
+    width: clamp(120px, 34 * var(--u), 200px);
+    height: clamp(56px, 18 * var(--u), 88px);
+  }
+}
+
+body.touch #touch .pedals { gap: 9px }
+body.touch #touch button { border-radius: 20px }
+body.touch #touch .pad { border-radius: 24px }
+/* a hairline keyline between the two steer halves reads as one rocker */
+body.touch #touch .steer { gap: 3px }
+
+/* ---- analog steering strip (steering mode: slider) ---- */
+/* Replaces the two pads with a track the thumb slides along, so the amount of
+   lock follows the thumb instead of being all-or-nothing. */
+#tSteer { display: none }
+body.touch.steer-slider #touch .steer { display: none }
+body.touch.steer-slider #tSteer {
+  pointer-events: auto;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: clamp(168px, 46 * var(--u), 268px);
+  height: clamp(74px, 23 * var(--u), 110px);
+  border-radius: 24px;
+  border: 1px solid rgba(241, 238, 230, .24);
+  background: linear-gradient(180deg, rgba(24, 28, 42, .8), rgba(8, 10, 16, .74));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .12);
+  overflow: hidden;
+}
+/* centre notch, so the eye finds straight-ahead without looking down */
+#tSteer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  bottom: 14%;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: rgba(241, 238, 230, .22);
+}
+/* The knob tracks the thumb; the engine writes --x as a -1..1 fraction.
+   Positioned with a percentage `left` rather than container-query units: this
+   also runs inside the Android app's WebView, where `cqw` may not exist, and an
+   unsupported unit there would void the whole declaration and strand the knob. */
+#tSteer i {
+  position: absolute;
+  z-index: 1;
+  left: calc(50% + var(--x, 0) * 33%);
+  top: 6px;
+  bottom: 6px;
+  width: 34%;
+  border-radius: 18px;
+  /* calm at rest and bright under a thumb, so the strip does not read as
+     permanently engaged the way a solid orange block would */
+  background: linear-gradient(180deg, rgba(255, 138, 77, .62), rgba(255, 90, 31, .56));
+  border: 1px solid rgba(255, 217, 198, .75);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .4);
+  transform: translateX(-50%);
+  transition: left .06s linear, background .12s, box-shadow .12s;
+}
+#tSteer.on i {
+  background: linear-gradient(180deg, #ff8a4d, #ff5a1f);
+  border-color: #ffd9c6;
+  box-shadow: 0 0 22px rgba(255, 90, 31, .6);
+}
+/* a wheel glyph marking dead centre - it belongs under the knob, not over it */
+#tSteer svg { width: 26px; height: 26px; opacity: .45; color: var(--fg) }
+@media (prefers-reduced-motion: reduce) { #tSteer i { transition: background .12s } }
+
+/* ---- tilt mode: no steering control on screen at all ---- */
+body.touch.steer-tilt #touch .steer,
+body.touch.steer-tilt #tSteer { display: none }
+/* the left thumb zone would otherwise collapse and shove the pedals left */
+body.touch.steer-tilt #touch { justify-content: flex-end }
+/* a slim level bar shows where centre is while tilting */
+#tTilt { display: none }
+body.touch.steer-tilt #tTilt {
+  display: block;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(70px, 17vh, 96px));
+  width: clamp(120px, 30vmin, 180px);
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .14);
+  pointer-events: none;
+}
+/* 46%, not 50: at full lock the dot stops inside the bar rather than half
+   hanging off its end. Percentage, not cqw - see the slider knob above. */
+#tTilt i {
+  position: absolute;
+  top: -3px;
+  left: calc(50% + var(--x, 0) * 46%);
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--hot);
+  box-shadow: 0 0 10px var(--hot);
+}
+
+/* arranging the controls from the garage: the HUD is only there to carry the
+   rig, so everything that would show a stale lap time or an empty map stays out */
+body.pad-garage #hud > *:not(#touch) { display: none }
+
+/* in the layout editor the steering strip is draggable like any other control */
+/* the two editor sliders ship at 26px tall, which is not a thumb target */
+body.phone .pe-f input[type=range] { height: 38px }
+body.phone .pe-f input[type=range]::-webkit-slider-thumb { margin-top: -14px }
+
+body.padedit #tSteer { outline: 2px dashed rgba(241, 238, 230, .4); outline-offset: 3px }
+body.padedit #tSteer.pe-sel {
+  outline: 2px solid var(--hot);
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, .22), 0 0 26px rgba(255, 90, 31, .5);
+}
+body.custompads #tSteer { position: absolute; margin: 0 }
+
+/* ---- very short landscape screens: drop the rig a size ---- */
+@media (orientation: landscape) and (max-height: 380px) {
+  body.touch #touch {
+    --u: 1.15svmin;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  }
+  body.touch #minimap { display: none }
+  body.touch .tr .t { min-width: 64px }
+}
+
+/* ========================== 5. RACE LOADING =============================== */
+/* The screen between the garage and the grid. It is a two-column layout built
+   for a desktop - a circuit name at up to 96px, four stat columns, and a 400px
+   track map - and style.css only folds it to one column below 760px. A phone in
+   landscape is wider than that, so it kept the desktop proportions on a 390px
+   tall screen and lost the progress bar, the step text and the tip off the
+   bottom, plus the map off the right. Sized off the short edge, like the HUD. */
+body.phone #loading { --lu: 1svmin }
+@supports not (width: 1svmin) { body.phone #loading { --lu: 1vmin } }
+
+body.phone .ld-grid {
+  /* height:100% plus padding, with no global border-box in this stylesheet,
+     made this box taller than the screen by exactly its own padding - on every
+     size. That was most of the cut. */
+  box-sizing: border-box;
+  gap: clamp(12px, 3vw, 28px);
+  padding: clamp(12px, 4 * var(--lu), 22px) clamp(14px, 4vw, 40px);
+  align-content: center;
+}
+
+/* style.css folds this to a single column below 760px and puts the map on top.
+   That is right for a portrait phone and wrong for a landscape one: a 740x360
+   screen is "narrow" by that rule, so a 240px map was being stacked above a
+   180px text block inside 360px of height. Landscape keeps two columns. */
+@media (orientation: landscape) {
+  body.phone .ld-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 38%) }
+  body.phone .ld-map { order: 0; max-width: min(34vw, 200px) }
+}
+body.phone .ld-eyebrow { font-size: 10px; letter-spacing: .22em }
+body.phone .ld-name { font-size: clamp(22px, 11 * var(--lu), 54px); margin-top: 6px }
+body.phone .ld-sub { font-size: clamp(12px, 3.4 * var(--lu), 16px); margin-top: 6px }
+body.phone .ld-stats { gap: 4px clamp(10px, 4 * var(--lu), 22px); margin-top: clamp(10px, 4 * var(--lu), 22px) }
+body.phone .ld-stats dd { font-size: clamp(16px, 5.4 * var(--lu), 26px) }
+body.phone .ld-stats dd small { font-size: .5em }
+body.phone .ld-stats dt { font-size: 9px; letter-spacing: .12em }
+body.phone .ld-bar { margin-top: clamp(12px, 4.5 * var(--lu), 26px) }
+body.phone .ld-step { font-size: 12px }
+body.phone .tip { font-size: clamp(11px, 3 * var(--lu), 14px); margin-top: 10px }
+/* the map is a fixed 400px svg; let it shrink to its column */
+body.phone .ld-map { justify-self: center; width: 100%; max-width: min(40vw, 240px) }
+body.phone .ld-map svg { width: 100%; height: auto; display: block }
+
+/* very short landscape: the tip is the first thing that can go, and the rest
+   steps down a size so the bar and the step text stay on screen */
+@media (orientation: landscape) and (max-height: 420px) {
+  body.phone .tip { display: none }
+  body.phone .ld-name { font-size: clamp(20px, 9 * var(--lu), 34px) }
+  body.phone .ld-sub { font-size: 12px; margin-top: 4px }
+  body.phone .ld-stats { margin-top: 8px; gap: 2px clamp(10px, 3.6 * var(--lu), 16px) }
+  body.phone .ld-stats dd { font-size: clamp(14px, 4.6 * var(--lu), 20px) }
+  body.phone .ld-bar { margin-top: 10px }
+  body.phone .ld-map { max-width: min(30vw, 170px) }
+}
+
+/* ========================== 6. SPLASH + ROTATE ============================ */
+/* The splash is a centred stack - logo, tagline, bar, step, start button,
+   language pill - inside a box with overflow:hidden. On a landscape phone that
+   stack is taller than the screen, so its bottom (the start button and the
+   language pill, the only two things you can press) was cut off with nothing to
+   show it had happened. Sized off the short edge now, so it fits the height it
+   actually has. */
+body.phone #splash .sp-logo { font-size: clamp(30px, 10vmin, 54px) }
+body.phone #spGo { min-height: 46px; padding: 0 24px }
+body.phone .sp-foot { font-size: 11px; padding: 0 18px }
+/* the rings are a square sized off vmin; at 120vmin they stand well out of a
+   short screen top and bottom, which was most of the height being cut */
+body.phone .sp-rings { width: min(96vmin, 520px) }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  body.phone .sp-center { gap: 7px }
+  body.phone #splash .sp-logo { font-size: clamp(26px, 11vmin, 44px) }
+  body.phone .sp-tag { font-size: 10px; letter-spacing: .16em }
+  body.phone .sp-bar { margin-top: 8px }
+  body.phone .sp-step { font-size: 12px; min-height: 12px }
+  body.phone #spGo { margin-top: 0; min-height: 40px; padding: 0 20px; font-size: 12px }
+  body.phone .sp-lang { margin-top: 0 }
+  body.phone .sp-lang button { padding: 7px 10px }
+  body.phone .sp-foot { bottom: calc(env(safe-area-inset-bottom, 0px) + 6px); font-size: 10px }
+}
+/* the rotate card is the first thing a phone sees in portrait mid-race */
+body.phone #rotate { font-size: 17px; gap: 14px }
+body.phone #rotate svg { width: 62px; height: 62px }

@@ -1,0 +1,9 @@
+/*
+ * A game page stacks seven sections, so the home page's `--section-y`
+ * (up to 8rem top and bottom) adds up to a lot of scrolling between blocks.
+ * Overriding the token here retunes every section at once - each one still
+ * reads its own `padding-block: var(--section-y)`, so nothing else changes.
+ */
+.page {
+  --section-y: clamp(2rem, 4vw, 3.25rem);
+}

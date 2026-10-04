@@ -1,0 +1,172 @@
+/* Velocity Rift hero. Phone layout first; the desktop two-column arrangement
+   is added back at 860px. See VrHero.tsx for why the order is that way round. */
+
+.section {
+  /* The header is sticky and already occupies its own height above this. */
+  padding-top: clamp(0.75rem, 2.4vw, 1.9rem);
+  padding-bottom: var(--section-y);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition: color 0.18s var(--ease);
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.back svg {
+  transition: transform 0.18s var(--ease);
+}
+
+.back:hover svg {
+  transform: translateX(-3px);
+}
+
+/* --------------------------------- Intro --------------------------------- */
+
+.top {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: clamp(2.1rem, 9vw, 3.6rem);
+  line-height: 1.04;
+}
+
+.tagline {
+  max-width: 34rem;
+  margin-top: 0.7rem;
+  font-size: 0.98rem;
+  color: var(--ink-2);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+}
+
+.tag {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-alt);
+  font-size: 0.76rem;
+  color: var(--ink-3);
+}
+
+/* ---------------------------------- Meta --------------------------------- */
+
+/* On a phone these are three chips on one wrapping line, directly above the
+   player, where they answer "is it free, how big is it" without costing a
+   screen of its own. */
+.meta,
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-alt);
+}
+
+.metaKey {
+  font-size: 0.74rem;
+  color: var(--ink-3);
+}
+
+.metaValue {
+  font-family: var(--font-head);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.free {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+/* --------------------------------- Desktop ------------------------------- */
+
+@media (min-width: 860px) {
+  .top {
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    align-items: start;
+    gap: 3rem;
+    margin-top: 1rem;
+    margin-bottom: clamp(1.25rem, 2.5vw, 1.85rem);
+  }
+
+  .tagline {
+    font-size: 1.02rem;
+  }
+
+  /* Back to a badge above a stacked list, beside the title, where there is
+     room for one. */
+  .meta {
+    display: grid;
+    justify-items: stretch;
+    gap: 0.9rem;
+    padding-top: 0.6rem;
+  }
+
+  .facts {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .metaItem {
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0 0.6rem;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: none;
+  }
+
+  .metaKey {
+    font-size: 0.8rem;
+  }
+
+  .metaValue {
+    font-size: 0.95rem;
+  }
+
+  .free {
+    justify-self: start;
+  }
+}
+
+/* --------------------------------- Player -------------------------------- */
+
+.player {
+  /* The sticky header must not sit over the player when the download cards
+     scroll back up to it. */
+  scroll-margin-top: 90px;
+}
